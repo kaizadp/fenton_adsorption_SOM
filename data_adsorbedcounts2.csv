@@ -1,0 +1,51 @@
+Forest,adsorbed,Class,N
+HW,adsorbed,AminoSugar,4
+HW,adsorbed,Carb,59
+HW,adsorbed,ConHC,55
+HW,adsorbed,Lignin,57
+HW,adsorbed,Other,6
+HW,adsorbed,Protein,2
+HW,adsorbed,Tannin,169
+HW,not adsorbed,AminoSugar,80
+HW,not adsorbed,Carb,268
+HW,not adsorbed,ConHC,92
+HW,not adsorbed,Lignin,1032
+HW,not adsorbed,Lipid,44
+HW,not adsorbed,Other,2
+HW,not adsorbed,Protein,249
+HW,not adsorbed,Tannin,179
+HW,not adsorbed,UnsatHC,8
+HW,NA,AminoSugar,438
+HW,NA,Carb,591
+HW,NA,ConHC,469
+HW,NA,Lignin,1651
+HW,NA,Lipid,346
+HW,NA,Other,24
+HW,NA,Protein,1005
+HW,NA,Tannin,496
+HW,NA,UnsatHC,120
+SW,adsorbed,AminoSugar,3
+SW,adsorbed,Carb,55
+SW,adsorbed,ConHC,100
+SW,adsorbed,Lignin,99
+SW,adsorbed,Other,7
+SW,adsorbed,Protein,3
+SW,adsorbed,Tannin,165
+SW,not adsorbed,AminoSugar,92
+SW,not adsorbed,Carb,234
+SW,not adsorbed,ConHC,14
+SW,not adsorbed,Lignin,810
+SW,not adsorbed,Lipid,35
+SW,not adsorbed,Other,3
+SW,not adsorbed,Protein,308
+SW,not adsorbed,Tannin,93
+SW,not adsorbed,UnsatHC,1
+SW,NA,AminoSugar,427
+SW,NA,Carb,629
+SW,NA,ConHC,502
+SW,NA,Lignin,1831
+SW,NA,Lipid,355
+SW,NA,Other,22
+SW,NA,Protein,945
+SW,NA,Tannin,586
+SW,NA,UnsatHC,127
