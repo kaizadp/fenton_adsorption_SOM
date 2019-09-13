@@ -399,6 +399,70 @@ write_csv(data_goethite_newcounts_summarytable, path = "fticr/data_goethite_newc
 
 #
 
+## 3.4 summary of elements for fenton and goethite ----
+
+# merge data_fg_merged2 with meta_class
+data_fg_merged_el = merge(data_fg_merged2,fticr_meta_elements, by = "Mass", all.x = T)
+
+# gather the elements into a single column
+data_fg_merged_el %>% 
+  gather(element, el_ratio, C:Na)->
+  data_fg_merged_el2
+
+# get element counts for fenton
+data_fenton_el = summarySE(data_fg_merged_el2, measurevar = "el_ratio", 
+                              groupvars = c("Forest","fenton_loss","element"), 
+                              na.rm = TRUE)
+
+# remove NA
+data_fenton_el = data_fenton_el[complete.cases(data_fenton_el),]
+data_fenton_el$el_ratio = round(data_fenton_el$el_ratio,1)
+
+data_fenton_el_summarytable = dcast(data_fenton_el,
+                                    element~Forest+fenton_loss, value.var = "el_ratio")
+
+#
+# for goethite, use file fticr_data_goethite
+# merge with fticr_meta_elements and then repeat the same process
+
+fticr_data_goethite_el = merge(fticr_data_goethite, fticr_meta_elements, by = "Mass", all.x = T)
+
+# gather
+fticr_data_goethite_el %>% 
+  gather(element, el_ratio, C:Na)->
+  fticr_data_goethite_el2
+
+data_goethite_adsorbed_el = summarySE(fticr_data_goethite_el2, measurevar = "el_ratio", 
+                           groupvars = c("Forest","Fenton","adsorbed","element"), 
+                           na.rm = TRUE)
+# remove NA
+data_goethite_adsorbed_el = data_goethite_adsorbed_el[complete.cases(data_goethite_adsorbed_el),]
+data_goethite_adsorbed_el$el_ratio = round(data_goethite_adsorbed_el$el_ratio,1)
+
+data_goethite_adsorbed_el_summarytable = dcast(data_goethite_adsorbed_el,
+                                    adsorbed+element~Forest+Fenton, value.var = "el_ratio")  
+
+#
+# now repeat the goethite stuff for new molecules
+data_goethite_new_el = summarySE(fticr_data_goethite_el2, measurevar = "el_ratio", 
+                                      groupvars = c("Forest","Fenton","new","element"), 
+                                      na.rm = TRUE)
+# remove NA
+data_goethite_new_el = data_goethite_new_el[complete.cases(data_goethite_new_el),]
+data_goethite_new_el$el_ratio = round(data_goethite_new_el$el_ratio,1)
+
+data_goethite_new_el_summarytable = dcast(data_goethite_new_el,
+                                               element~Forest+Fenton, value.var = "el_ratio")  
+
+
+### OUTPUT
+write_csv(data_fenton_el_summarytable, path = "fticr/data_fenton_el_counts.csv")
+write_csv(data_goethite_adsorbed_el_summarytable, path = "fticr/data_goethite_ads_el_counts.csv")
+write_csv(data_goethite_new_el_summarytable, path = "fticr/data_goethite_new_el_counts.csv")
+
+
+
+#
 # 4. NOSC processing  ---------------------- ####
 fticr_data_4 = merge (fticr_data_3,fticr_meta_subset, by = "Mass", all = T)
 
