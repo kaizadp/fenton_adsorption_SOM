@@ -17,8 +17,11 @@ fticr_meta %>%
   select(-starts_with("Post")) %>% 
   select(-c("...39","...40","...41")) %>% 
   select(-c("C13", "Candidates","outlier")) %>% 
-  mutate(Mass = paste(round(Mass,4)))-> # round this to 4 decimal places
+  mutate(Mass = round(Mass,4))-> # round this to 4 decimal places
   fticr_meta
+
+
+#fticr_meta$Mass = round(fticr_meta$Mass,4)
 
 # create a new column for NOSC
 fticr_meta %>% 
@@ -41,6 +44,10 @@ fticr_meta %>%
          AI_0)->
   fticr_meta_subset
 
+fticr_meta_subset %>% 
+  mutate(Mass = paste(round(Mass,4)))->
+  fticr_meta_subset
+fticr_meta_subset$Mass = as.numeric(fticr_meta_subset$Mass)
 # create a subset with only Mass and Class
 fticr_meta %>% 
   select(Mass, Class)->
@@ -52,9 +59,9 @@ fticr_meta %>%
   fticr_meta_elements
 
 # SAVE META FILES
-write_csv(fticr_meta, path = "fticr_meta.csv")
-write_csv(fticr_meta_hcoc, path = "fticr_meta_hcoc.csv")
-write_csv(fticr_meta_subset, path = "fticr_meta_subset.csv")
+write_csv(fticr_meta, path = "fticr/fticr_meta.csv")
+write_csv(fticr_meta_hcoc, path = "fticr/fticr_meta_hcoc.csv")
+write_csv(fticr_meta_subset, path = "fticr/fticr_meta_subset.csv")
 
 
 
@@ -67,7 +74,8 @@ fticr_data = read_excel("Master-Formularity-reprocessing V2.xlsx", sheet = "RAW"
 fticr_data %>% 
   select("Mass",starts_with("Pre"), starts_with("Post")) %>% 
   dplyr::rename(PostFentonGoethiteSW = `Post FentonGoethiteSW`) %>% 
-  dplyr::rename(PostFentonSW = `Post FentonSW`) ->
+  dplyr::rename(PostFentonSW = `Post FentonSW`) %>% 
+  mutate(Mass = paste(round(Mass,4)))->
   fticr_data
 
 # collapse columns by forest type.
@@ -104,7 +112,7 @@ fticr_data_sw %>%
 fticr_data_2 = rbind(fticr_data_hw,fticr_data_sw)
 
 ## OUTPUT
-write_csv(fticr_data_2, path = "fticr_data_master.csv")
+write_csv(fticr_data_2, path = "fticr/fticr_data_master.csv")
 
 # gather, to make a longform file
 
@@ -112,7 +120,7 @@ fticr_data_3 = fticr_data_2 %>%
   gather(treatment, intensity, PreFenton:PostFentonGoethite)
 
 ## OUTPUT
-write_csv(fticr_data_3, path = "fticr_data_master_longform.csv")
+write_csv(fticr_data_3, path = "fticr/fticr_data_master_longform.csv")
 
 
 ### 1.2.2 raw files ----
@@ -132,7 +140,7 @@ names(fticr_data_raw)
 # rename all the f-ing columns
 fticr_data_raw %>% 
   dplyr::rename(Mass = mass) %>% 
-  mutate(Mass = paste(round(Mass,4))) %>% 
+  mutate(Mass = paste(round(Mass,4))) %>% # round the mass to four decimals
   
   dplyr::rename(Soil_1 = PreHW1.csv) %>% 
   dplyr::rename(Soil_2 = PreHW2.csv) %>%
@@ -174,14 +182,14 @@ fticr_data_raw2 = merge(fticr_meta_class,fticr_data_raw,by = "Mass", all.y = T)
 
 fticr_data_raw2 = fticr_data_raw2[complete.cases(fticr_data_raw2),]
 
-write_csv(fticr_data_raw, path = "data/fticr_data_raw.csv")
+write_csv(fticr_data_raw, path = "fticr/fticr_data_raw.csv")
 
 fticr_data_raw2 %>% 
   gather(soil, intensity, Soil_1:Soil_24)->
   fticr_data_raw_long
 
 fticr_data_raw_long = merge(soil_key,fticr_data_raw_long)
-write_csv(fticr_data_raw_long, path = "data/fticr_data_raw_long.csv")
+write_csv(fticr_data_raw_long, path = "fticr/fticr_data_raw_long.csv")
 
 #
 
@@ -200,7 +208,7 @@ fticr_data_fenton[PreFenton > 0 & PostFenton > 0, loss := "conserved"]
 fticr_data_fenton$loss = ordered(fticr_data_fenton$loss, levels = c("lost", "gained", "conserved"))
 
 ## OUTPUT
-write_csv(fticr_data_fenton,path = "fticr_data_fenton.csv")
+write_csv(fticr_data_fenton,path = "fticr/fticr_data_fenton.csv")
 
 #
 
@@ -257,7 +265,7 @@ fticr_data_goethite[PreGoethite/minimum >2 & PostGoethite/minimum > 1, adsorbed 
 setDT(fticr_data_goethite)[PreGoethite/minimum == 0 & PostGoethite/minimum > 1, new := "new molecules"]
 
 ## OUTPUT
-write_csv(fticr_data_goethite,path = "fticr_data_goethite.csv")
+write_csv(fticr_data_goethite,path = "fticr/fticr_data_goethite.csv")
 #
 
 
@@ -294,7 +302,7 @@ soilnames = data.frame(fticr_data_soil_groups_wide[,c(1:3)])
 fticr_data_relabundance = cbind(soilnames,fticr_data_abundance)
 
 ### OUTPUT
-write_csv(fticr_data_relabundance,path = "fticr_pore_relabund_soils.csv")
+write_csv(fticr_data_relabundance,path = "fticr/fticr_pore_relabund_soils.csv")
 
 ## relative abundance by treatment/site
 # convert to long form and then do summary
@@ -324,7 +332,7 @@ fticr_relabundance_summary_summarytable$total="1"
 
 ### OUTPUT
 # write.csv(fticr_soil_relabundance_summarytable,"fticr_soil_relabundance_groups.csv")
-write_csv(fticr_relabundance_summary_summarytable,path = "fticr_relabundance_groups.csv")
+write_csv(fticr_relabundance_summary_summarytable,path = "fticr/fticr_relabundance_groups.csv")
 
 #
 
@@ -349,14 +357,9 @@ data_fg_merged %>%
   data_fg_merged2
 
 # merge with meta_class
-data_fg_merged3 = merge(data_fg_merged2,fticr_meta_class, all.x = T)
+data_fg_merged3 = merge(data_fg_merged2,fticr_meta_class, by = "Mass", all.x = T)
 
 # get counts by group and treatment
-data_fg_merged3 %>% 
-  group_by(Forest, fenton_loss, adsorbed, goethite_new, Class) %>% 
-  dplyr::mutate(counts = n(), na.rm = TRUE) ->
-  fticr_fg_counts
-
 data_fentoncounts = summarySE(data_fg_merged3, measurevar = "Mass", 
                             groupvars = c("Forest","fenton_loss","Class"), 
                             na.rm = TRUE)
@@ -380,9 +383,9 @@ data_goethite_newcounts %>%
   data_goethite_newcounts2
 
 ### OUTPUT
-write_csv(data_fentoncounts2, path = "data_fentoncounts2.csv")
-write_csv(data_adsorbedcounts2, path = "data_adsorbedcounts2.csv")
-write_csv(data_goethite_newcounts2, path = "data_goethite_newcounts2.csv")
+write_csv(data_fentoncounts2, path = "fticr/data_fentoncounts2.csv")
+write_csv(data_adsorbedcounts2, path = "fticr/data_adsorbedcounts2.csv")
+write_csv(data_goethite_newcounts2, path = "fticr/data_goethite_newcounts2.csv")
 
 
 ## create summary tables of the counts
@@ -395,9 +398,9 @@ data_adsorbedcounts_summarytable = dcast(data_adsorbedcounts2[!is.na(data_adsorb
 data_goethite_newcounts_summarytable = dcast(data_goethite_newcounts2[!is.na(data_goethite_newcounts2$goethite_new),],
                                        Forest+goethite_new~Class,value.var = "N") 
 
-write_csv(data_fentoncounts_summarytable, path = "data_fentoncounts_summarytable.csv")
-write_csv(data_adsorbedcounts_summarytable, path = "data_adsorbedcounts_summarytable.csv")
-write_csv(data_goethite_newcounts_summarytable, path = "data_goethite_newcounts_summarytable.csv")
+write_csv(data_fentoncounts_summarytable, path = "fticr/data_fentoncounts_summarytable.csv")
+write_csv(data_adsorbedcounts_summarytable, path = "fticr/data_adsorbedcounts_summarytable.csv")
+write_csv(data_goethite_newcounts_summarytable, path = "fticr/data_goethite_newcounts_summarytable.csv")
 
 #
 

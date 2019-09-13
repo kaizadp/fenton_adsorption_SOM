@@ -8,21 +8,36 @@ source("0-packages.R")
 
 # 1. import files ----
 
-fticr_data_fenton = read_csv("fticr_data_fenton.csv",
+fticr_data_fenton = read_csv("fticr/fticr_data_fenton.csv",
                              col_types = cols(
-                               Mass = col_double(),
-                               Forest = col_character(),
-                               PreFenton = col_double(),
-                               PostFenton = col_double(),
+                               Mass = col_number(),
+                               Forest = col_factor(),
+                               PreFenton = col_number(),
+                               PostFenton = col_number(),
                                loss = col_factor()))
 
-fticr_data_goethite = read_csv("fticr_data_goethite.csv")
-fticr_data_2 = read_csv("fticr_data_master.csv")
-fticr_meta_subset = read_csv("fticr_meta_subset.csv")
+fticr_data_goethite = read.csv("fticr/fticr_data_goethite.csv")
+fticr_data_2 = read.csv("fticr/fticr_data_master.csv")
+fticr_meta_subset = read_csv("fticr/fticr_meta_subset.csv",
+                             col_types = cols(
+                               Mass = col_number(),
+                               HC = col_number(),
+                               OC = col_number(),
+                               NOSC = col_number(),
+                               Class = col_factor(),
+                               KM_CH2 = col_number(),
+                               KMD_CH2 = col_number(),
+                               AI_0 = col_number()
+                             ))
+
+fticr_meta_subset$Mass = round(fticr_meta_subset$Mass,4)
 
 # merge files with the meta for van krevelen plots
-fticr_data_fenton = merge(fticr_meta_subset,fticr_data_fenton)
-fticr_data_goethite = merge(fticr_meta_subset,fticr_data_goethite)
+fticr_data_fenton2 = merge(fticr_data_fenton, fticr_meta_subset,by = "Mass", all.x = T)
+fticr_data_fenton2 = cbind(fticr_data_fenton, fticr_meta_subset)
+fticr_data_fenton3 = left_join(fticr_data_fenton,fticr_meta_subset, by = "Mass")
+
+fticr_data_goethite = merge(fticr_meta_subset,fticr_data_goethite, all = TRUE)
 fticr_data_2 = merge(fticr_meta_subset,fticr_data_2)
 
 
