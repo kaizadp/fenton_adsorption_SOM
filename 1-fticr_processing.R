@@ -20,7 +20,6 @@ fticr_meta %>%
   mutate(Mass = round(Mass,4))-> # round this to 4 decimal places
   fticr_meta
 
-
 #fticr_meta$Mass = round(fticr_meta$Mass,4)
 
 # create a new column for NOSC
@@ -44,10 +43,6 @@ fticr_meta %>%
          AI_0)->
   fticr_meta_subset
 
-fticr_meta_subset %>% 
-  mutate(Mass = paste(round(Mass,4)))->
-  fticr_meta_subset
-fticr_meta_subset$Mass = as.numeric(fticr_meta_subset$Mass)
 # create a subset with only Mass and Class
 fticr_meta %>% 
   select(Mass, Class)->
@@ -75,7 +70,7 @@ fticr_data %>%
   select("Mass",starts_with("Pre"), starts_with("Post")) %>% 
   dplyr::rename(PostFentonGoethiteSW = `Post FentonGoethiteSW`) %>% 
   dplyr::rename(PostFentonSW = `Post FentonSW`) %>% 
-  mutate(Mass = paste(round(Mass,4)))->
+  mutate(Mass = round(Mass,4))->
   fticr_data
 
 # collapse columns by forest type.
@@ -140,7 +135,7 @@ names(fticr_data_raw)
 # rename all the f-ing columns
 fticr_data_raw %>% 
   dplyr::rename(Mass = mass) %>% 
-  mutate(Mass = paste(round(Mass,4))) %>% # round the mass to four decimals
+  mutate(Mass = round(Mass,4)) %>% # round the mass to four decimals
   
   dplyr::rename(Soil_1 = PreHW1.csv) %>% 
   dplyr::rename(Soil_2 = PreHW2.csv) %>%
@@ -353,7 +348,7 @@ data_fg_merged %>%
   select(Mass, Forest, loss, adsorbed, new) %>% 
   dplyr::rename(fenton_loss = loss) %>% 
   dplyr::rename(goethite_new = new) %>% 
-  mutate(Mass = paste(round(Mass,4)))->
+  mutate(Mass = round(Mass,4))->
   data_fg_merged2
 
 # merge with meta_class
@@ -404,6 +399,41 @@ write_csv(data_goethite_newcounts_summarytable, path = "fticr/data_goethite_newc
 
 #
 
+# 4. NOSC processing  ---------------------- ####
+fticr_data_4 = merge (fticr_data_3,fticr_meta_subset, by = "Mass", all = T)
+
+# remove all rows without a value
+# the absences are coded as 0, which will be included in the histogram. 
+# so convert all zeroes to NA and then remove all NA
+
+fticr_data_4 %>%
+  mutate_all(~replace(., . == 0, NA))->
+  fticr_data_4
+
+fticr_data_4 = fticr_data_4[complete.cases(fticr_data_4),]
+
+# now make a subset with only relevant columns
+
+fticr_data_4 %>% 
+  select(Mass, Forest, treatment, intensity, NOSC, Class)->
+  fticr_data_nosc
+
+# split the treatment column into fenton and goethite
+# this makes faceting easier for the graphs
+
+setDT(fticr_data_nosc)[treatment == "PreFenton", fenton := "initial"]
+fticr_data_nosc[treatment == "PreFentonGoethite", fenton := "initial"]
+fticr_data_nosc[treatment == "PostFenton", fenton := "post-Fenton"]
+fticr_data_nosc[treatment == "PostFentonGoethite", fenton := "post-Fenton"]
+
+setDT(fticr_data_nosc)[treatment == "PreFenton", goethite := "pre-Goethite"]
+fticr_data_nosc[treatment == "PostFenton", goethite := "pre-Goethite"]
+fticr_data_nosc[treatment == "PreFentonGoethite", goethite := "post-Goethite"]
+fticr_data_nosc[treatment == "PostFentonGoethite", goethite := "post-Goethite"]
+
+write_csv(fticr_data_nosc, path = "fticr/fticr_data_nosc.csv")
+
+#
 #  ----------------------  ---------------------- #### ####
 #  ----------------------  ---------------------- #### ####
 ### ### ### ### ### ###  ------

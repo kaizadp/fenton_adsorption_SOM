@@ -702,7 +702,7 @@ Mass,Forest,treatment,intensity
 577.3019,HW,PreFenton,0
 577.3383,HW,PreFenton,0
 579.149,HW,PreFenton,0
-579.1601,HW,PreFenton,0
+579.16010000000006,HW,PreFenton,0
 579.2658,HW,PreFenton,0
 579.3023,HW,PreFenton,0
 579.3176,HW,PreFenton,0
@@ -4425,7 +4425,7 @@ Mass,Forest,treatment,intensity
 577.3019,SW,PreFenton,0
 577.3383,SW,PreFenton,0
 579.149,SW,PreFenton,0
-579.1601,SW,PreFenton,0
+579.16010000000006,SW,PreFenton,0
 579.2658,SW,PreFenton,0
 579.3023,SW,PreFenton,0
 579.3176,SW,PreFenton,0
@@ -8148,7 +8148,7 @@ Mass,Forest,treatment,intensity
 577.3019,HW,PreFentonGoethite,4571517.33333333
 577.3383,HW,PreFentonGoethite,1944647.5
 579.149,HW,PreFentonGoethite,2035262.5
-579.1601,HW,PreFentonGoethite,3729082
+579.16010000000006,HW,PreFentonGoethite,3729082
 579.2658,HW,PreFentonGoethite,0
 579.3023,HW,PreFentonGoethite,2227517.5
 579.3176,HW,PreFentonGoethite,3543565.33333333
@@ -11871,7 +11871,7 @@ Mass,Forest,treatment,intensity
 577.3019,SW,PreFentonGoethite,2516919.66666667
 577.3383,SW,PreFentonGoethite,0
 579.149,SW,PreFentonGoethite,0
-579.1601,SW,PreFentonGoethite,2547399.33333333
+579.16010000000006,SW,PreFentonGoethite,2547399.33333333
 579.2658,SW,PreFentonGoethite,0
 579.3023,SW,PreFentonGoethite,0
 579.3176,SW,PreFentonGoethite,2427927.33333333
@@ -15594,7 +15594,7 @@ Mass,Forest,treatment,intensity
 577.3019,HW,PostFenton,0
 577.3383,HW,PostFenton,0
 579.149,HW,PostFenton,0
-579.1601,HW,PostFenton,0
+579.16010000000006,HW,PostFenton,0
 579.2658,HW,PostFenton,0
 579.3023,HW,PostFenton,0
 579.3176,HW,PostFenton,0
@@ -19317,7 +19317,7 @@ Mass,Forest,treatment,intensity
 577.3019,SW,PostFenton,0
 577.3383,SW,PostFenton,0
 579.149,SW,PostFenton,0
-579.1601,SW,PostFenton,0
+579.16010000000006,SW,PostFenton,0
 579.2658,SW,PostFenton,0
 579.3023,SW,PostFenton,0
 579.3176,SW,PostFenton,0
@@ -23040,7 +23040,7 @@ Mass,Forest,treatment,intensity
 577.3019,HW,PostFentonGoethite,1961724
 577.3383,HW,PostFentonGoethite,0
 579.149,HW,PostFentonGoethite,0
-579.1601,HW,PostFentonGoethite,2059381.66666667
+579.16010000000006,HW,PostFentonGoethite,2059381.66666667
 579.2658,HW,PostFentonGoethite,0
 579.3023,HW,PostFentonGoethite,0
 579.3176,HW,PostFentonGoethite,0
@@ -26763,7 +26763,7 @@ Mass,Forest,treatment,intensity
 577.3019,SW,PostFentonGoethite,2672996.5
 577.3383,SW,PostFentonGoethite,0
 579.149,SW,PostFentonGoethite,0
-579.1601,SW,PostFentonGoethite,2668045
+579.16010000000006,SW,PostFentonGoethite,2668045
 579.2658,SW,PostFentonGoethite,1777675.33333333
 579.3023,SW,PostFentonGoethite,1697313.5
 579.3176,SW,PostFentonGoethite,2177888
