@@ -14,7 +14,8 @@ fticr_data_fenton = read.csv("fticr/fticr_data_fenton.csv")
 fticr_data_goethite = read.csv("fticr/fticr_data_goethite.csv")
 fticr_data_2 = read.csv("fticr/fticr_data_master.csv")
 fticr_data_3 = read.csv("fticr/fticr_data_master_longform.csv")
-
+fticr_data_4_hcoc = read.csv("fticr/fticr_data_hcoc_percentile.csv")
+fticr_data_nosc = read.csv("fticr/fticr_data_nosc.csv")
 fticr_meta_subset = read.csv("fticr/fticr_meta_subset.csv")
 fticr_meta_hcoc=read.csv("fticr/fticr_meta_hcoc.csv")
 # fticr_meta_nosc=read.csv("fticr/fticr_meta_nosc.csv")
@@ -29,6 +30,7 @@ fticr_data_goethite2$Fenton = factor(fticr_data_goethite2$Fenton, levels = c("Pr
 
 # 2. baseline van Krevelen ----
 
+## 2.1 
 gg_vk_native=ggplot (fticr_data_2_hcoc[fticr_data_2$PreFenton>0,],
                      aes (x=`OC`,y=`HC`, color = Forest, shape = Forest, na.rm=TRUE))+
   geom_point(size=1,stroke=1)+
@@ -71,8 +73,155 @@ save_plot("output/vankrev_nativesom.tiff", gg_vk_native_marginal,
           base_width = 7, base_height = 7)
 #
 
-# 3. Fenton van krevelen ---------------------- ## -----
+## 2.2 native van krevelen with percentile abundance 
 
+gg_vk_native_perc = 
+  ggplot(fticr_data_4_hcoc[fticr_data_4_hcoc$treatment=="PreFenton",], #[fticr_data_goethite2_elcomp$Fenton=="PreFenton"&fticr_data_goethite2_elcomp$Forest=="SW",],
+       aes (x=OC,y=HC, color=perc))+
+  geom_point(size=1,stroke=1)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  # scale_shape_manual (values=c(1,4),limits = c("adsorbed","not adsorbed"))+
+  scale_color_brewer(palette = "Reds")+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  #geom_hline(yintercept = 2.0,color="black",linetype="solid")+ #aliph
+  #geom_hline(yintercept = 1.5,color="black",linetype="solid")+ #aliph
+  geom_vline(xintercept = 0.3,color="black",linetype="solid")+
+  geom_vline(xintercept = 0.6,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="solid")+
+  
+  annotate("text", label = "saturated aliphatic", x = 1, y = 2.25, size = 3)+ 
+  annotate("text", label = "unsaturated aliphatic", x = 1, y = 1.75, size = 3)+ 
+  annotate("text", label = "highly unsaturated", x = 1, y = 1.25, size = 3)+ 
+  annotate("text", label = "aromatic", x = 1, y = 0.65, size = 3)+ 
+  annotate("text", label = "condensed aromatic", x = 1, y = 0.25, size = 3)+ 
+  
+  
+  annotate("text", label = "low-O", x = 0.125, y = 0.0)+ 
+  annotate("text", label = "high-O", x = 1.0, y = 0.0)+ 
+  
+  # facet_wrap(~El_comp)+ #facet with two variables
+  facet_grid(~Forest) + 
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig1_vankrev_nativesom_perc.tiff", gg_vk_native_perc, 
+          base_width = 10, base_height = 6)
+
+
+## 2.1 van krevelen with relative abundances ----
+
+# order the treatments
+fticr_data_4_hcoc %>% 
+  mutate(treatment=factor(treatment,
+                          levels = c("PreFenton","PostFenton","PreFentonGoethite","PostFentonGoethite")))->
+  fticr_data_4_hcoc
+
+
+gg_vk_treatments_perc = 
+  ggplot(fticr_data_4_hcoc, 
+       aes (x=OC,y=HC, color=perc))+
+  geom_point(size=1,stroke=1)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  # scale_shape_manual (values=c(1,4),limits = c("adsorbed","not adsorbed"))+
+  scale_color_brewer(palette = "Reds")+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+
+  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+
+  
+# annotate("text", label = "aliphatic", x = 0.4, y = 2.4)+ 
+#  annotate("text", label = "aromatic", x = 1.0, y = 0.5)+ 
+#  annotate("text", label = "low-O", x = 0.125, y = 0.0)+ 
+#  annotate("text", label = "high-O", x = 1.0, y = 0.0)+ 
+  
+  # facet_wrap(~El_comp)+ #facet with two variables
+  facet_grid(treatment~Forest) + 
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig2_vankrev_treatments_perc.tiff", gg_vk_treatments_perc, 
+          base_width = 7, base_height = 15)
+
+
+#
+# 3. Fenton van krevelen ---------------------- ## -----
+## VK with facet
+gg_vk_fentonloss =
+  ggplot (na.omit(fticr_data_fenton2[!fticr_data_fenton2$loss=="conserved",]),
+                              aes (x=`OC`,y=`HC`, color=loss, shape=loss,na.rm=TRUE))+
+  geom_point(size=1,stroke=1)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  scale_shape_manual(values=c(19,4),limits=c("lost","gained"))+
+  #scale_color_discrete(limits=c("lost","gained"))+
+  scale_color_brewer(palette = "Set1",limits=c("lost","gained"))+
+  facet_wrap(~Forest)+
+  #  stat_ellipse(aes(fticr_data_fenton2[fticr_data_fenton2$loss=="conserved",], color = loss))+
+  
+  xlab("O/C")+
+  ylab("H/C")+
+
+  #annotate("text", label = "HW", x = 0.1, y = 2.4)+ 
+  #ggtitle("HW fenton")+
+  
+  geom_vline(xintercept = 0.3,color="black",linetype="solid")+
+  geom_vline(xintercept = 0.6,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="solid")+
+  
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+  save_plot("output/fig3_vankrev_fenton_loss.tiff", gg_vk_fentonloss, 
+            base_width = 10, base_height = 6)
+  
+
+## individual
 gg_vk_hw_fentonloss = ggplot (fticr_data_fenton2[fticr_data_fenton2$Forest=="HW" &
                                                    !fticr_data_fenton2$loss=="conserved",],
                             aes (x=`OC`,y=`HC`,
@@ -85,7 +234,7 @@ gg_vk_hw_fentonloss = ggplot (fticr_data_fenton2[fticr_data_fenton2$Forest=="HW"
   
 #  stat_ellipse(aes(fticr_data_fenton2[fticr_data_fenton2$loss=="conserved",], color = loss))+
  
-   xlab("O/C")+
+  xlab("O/C")+
   ylab("H/C")+
   theme_bw()+
   theme(panel.grid=element_blank())+
@@ -154,11 +303,57 @@ save_plot("output/vankrev_fentonloss.tiff", gg_vk_fentonloss,
           base_width = 15, base_height = 7)
 
 
+## fenton vk with percentiles 
+
+
+gg_vk_fenton_perc = 
+  ggplot(fticr_data_4_hcoc[fticr_data_4_hcoc$treatment=="PostFenton",], 
+         aes (x=OC,y=HC, color=perc))+
+  geom_point(size=1,stroke=1)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  # scale_shape_manual (values=c(1,4),limits = c("adsorbed","not adsorbed"))+
+  scale_color_brewer(palette = "Reds")+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+
+  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+
+  
+  # annotate("text", label = "aliphatic", x = 0.4, y = 2.4)+ 
+  #  annotate("text", label = "aromatic", x = 1.0, y = 0.5)+ 
+  #  annotate("text", label = "low-O", x = 0.125, y = 0.0)+ 
+  #  annotate("text", label = "high-O", x = 1.0, y = 0.0)+ 
+  
+  # facet_wrap(~El_comp)+ #facet with two variables
+  facet_grid(~Forest) + 
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig2_vankrev_fenton_perc.tiff", gg_vk_fenton_perc, 
+          base_width = 10, base_height = 6)
+
+
 #
 
 # 4. van krevelen for adsorbed vs. not adsorbed ----
+
 # 4.1 adsorbed/non-adsorbed using facet ----
-gg_vk_adsorbed_facet = ggplot(fticr_data_goethite2,
+gg_vk_adsorbed_facet = 
+  ggplot(fticr_data_goethite2,
                                 aes (x=OC,y=HC, color=adsorbed, shape=adsorbed))+
   geom_point(size=1,stroke=1)+
   xlim(0.0,1.2)+
@@ -175,7 +370,7 @@ gg_vk_adsorbed_facet = ggplot(fticr_data_goethite2,
   geom_rect(xmin=0.0,xmax=0.67,ymin=0.2,ymax=0.7,fill=NA,color="black",linetype="dashed")+ #cond.ar
   geom_rect(xmin=0.67,xmax=1.2,ymin=1.5,ymax=2.4,fill=NA,color="black",linetype="dashed")+ #carb
   
-  facet_grid(Fenton~Forest)+ #facet with two variables
+  facet_grid(Fenton~Forest+El_comp)+ #facet with two variables
   
 #  annotate("text", label = "lignin", x = 0.25, y = 0.8)+ 
 #  annotate("text", label = "condensed aromatic", x = 0.3, y = 0.3)+ 
@@ -245,6 +440,140 @@ gg_vk_ads_new_facet = ggplot(fticr_data_goethite2,
 save_plot("output/vankrev_ads_newmolecules.tiff", gg_vk_ads_new_facet, 
           base_width = 10, base_height = 10)
 
+
+#
+# 4.2 post-adsorption new single panel ----
+gg_vk_ads_new = 
+  ggplot(fticr_data_goethite2[fticr_data_goethite2$new=="new molecules",],
+                             aes (x=OC,y=HC, color=Fenton))+
+  geom_point(size=1,stroke=1, alpha = 0.5)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+#  scale_shape_manual (values=c(1),limits = c("new molecules"))+
+#  scale_color_discrete(limits=c("new molecules"))+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+
+  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+ #aliph
+  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+ #aliph
+  
+#  facet_grid(Fenton~Forest)+ #facet with two variables
+  
+  #  annotate("text", label = "lignin", x = 0.25, y = 0.8)+ 
+  #  annotate("text", label = "condensed aromatic", x = 0.3, y = 0.3)+ 
+  #  annotate("text", label = "aliphatic", x = 0.4, y = 2.4)+ 
+  #  annotate("text", label = "aromatic", x = 1.0, y = 1.3)+ 
+  #  annotate("text", label = "carbohydrate", x = 1.0, y = 2.3)+ 
+  ##group boundaries from Ohno et al. 2014| doi: 10.1021/es405570c
+  
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+gg_vk_ads_new_marginal=ggMarginal(gg_vk_ads_new,groupColour = TRUE,groupFill = TRUE)
+
+save_plot("output/fig4_vankrev_ads_newmolecules.tiff", gg_vk_ads_new, 
+          base_width = 6, base_height = 6)
+
+
+#
+# 4.3 adsorption fractionation ----
+
+gg_vk_adsorp_frac = 
+  ggplot(fticr_data_goethite_relabund[!fticr_data_goethite_relabund$sorption_frac=="minimal change",], 
+       aes(x = OC, y = HC, color = sorption_frac))+
+  geom_point(size=1,stroke=1, alpha = 0.5)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  # scale_shape_manual (values=c(1,4),limits = c("adsorbed","not adsorbed"))+
+  scale_color_brewer(palette = "PuOr")+
+  #scale_color_viridis_d(option = "inferno")+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+
+  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+
+  
+#  annotate("text", label = "aliphatic", x = 0.4, y = 2.4)+ 
+#  annotate("text", label = "aromatic", x = 1.0, y = 0.5)+ 
+#  annotate("text", label = "low-O", x = 0.125, y = 0.0)+ 
+#  annotate("text", label = "high-O", x = 1.0, y = 0.0)+ 
+  
+  # facet_wrap(~El_comp)+ #facet with two variables
+  facet_grid(Fenton~Forest) + 
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="right",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig3_vankrev_adsorbed_frac.tiff", gg_vk_adsorp_frac, 
+          base_width = 10, base_height = 8)
+
+#
+# 4.3 adsorbed/non-adsorbed by El_comp ----
+
+#trial
+# filter only CHO and CHON compounds. because the others have a low occurrence
+
+fticr_data_goethite2 %>% 
+  filter(El_comp=="CHO"|El_comp=="CHON")->
+  fticr_data_goethite2_elcomp
+
+ggplot(fticr_data_goethite2_elcomp, #[fticr_data_goethite2_elcomp$Fenton=="PreFenton"&fticr_data_goethite2_elcomp$Forest=="SW",],
+       aes (x=OC,y=HC, color=adsorbed, shape=adsorbed))+
+  geom_point(size=1,stroke=1)+
+  xlim(0.0,1.2)+
+  ylim(0.0,2.5)+
+  scale_shape_manual (values=c(1,4),limits = c("adsorbed","not adsorbed"))+
+  scale_color_discrete(limits=c("adsorbed","not adsorbed"))+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+  
+  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+  geom_rect(xmin=0.1,xmax=0.67,ymin=0.7,ymax=1.5,fill=NA,color="black",linetype="dashed")+ #lignin
+  geom_rect(xmin=0.0,xmax=0.67,ymin=0.2,ymax=0.7,fill=NA,color="black",linetype="dashed")+ #cond.ar
+  geom_rect(xmin=0.67,xmax=1.2,ymin=1.5,ymax=2.4,fill=NA,color="black",linetype="dashed")+ #carb
+  
+ # facet_wrap(~El_comp)+ #facet with two variables
+facet_grid(Fenton~Forest+El_comp) + 
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
 
 #
 # 4.3 individual plots -- don't do ----
@@ -632,17 +961,85 @@ plot_grid (vankrev_hwpref,
            align="hv")
 
 #
-# 5. NOSC graph ----
+# molecules sorbed vs. unbound ----
+
+fticr_goethite_data_relabundance_long2 = fticr_goethite_data_relabundance_long[!fticr_goethite_data_relabundance_long$Class=="total",]
+
+gg_relabund_adsorbed = 
+  ggplot(fticr_goethite_data_relabundance_long2,
+       aes(x = Class, y = relabund, fill = sorption_frac))+
+  geom_bar(stat = "identity", position = position_dodge(width = 0.6), color = "black", width = 0.5)+
+  #scale_fill_brewer(palette = "PuOr")+
+  scale_fill_manual(values = c("chocolate3","mediumpurple3"))+
+  facet_grid(Fenton~Forest)+
+  ylab("% of total intensity")+
+  theme_bw()+
+  theme(panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig5_adsorbed_relabund.tiff", gg_relabund_adsorbed, 
+          base_width = 13, base_height = 7)
+  
+#
+
+## fenton: loss/gain vs. O ----
+fticr_fenton_loss_relabund_o = merge(fticr_fenton_loss_relabund, fticr_meta_elements, by = "Mass", all.x = T)
+# select only lost and gained values
+fticr_fenton_loss_relabund_o = fticr_fenton_loss_relabund_o[fticr_fenton_loss_relabund_o$loss=="lost"|
+                                                              fticr_fenton_loss_relabund_o$loss=="gained",]
+fticr_fenton_loss_relabund_o$O = as.factor(fticr_fenton_loss_relabund_o$O)
+
+
+fticr_fenton_loss_relabund_o <- fticr_fenton_loss_relabund_o %>%
+  mutate(rel_abund_new = ifelse(loss == "gained",
+                                 rel_abund,
+                                 -1*rel_abund))
+
+gg_fenton_loss_relabund=
+  ggplot(na.omit(fticr_fenton_loss_relabund_o), aes(x = O, y = rel_abund_new, fill = loss))+
+  geom_bar(stat = "identity")+
+  scale_fill_brewer(palette = "Set1")+
+  facet_wrap(~Forest)+
+  scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))+
+  ylab("% of total intensity")+
+  theme_bw()+
+  theme(
+    #panel.grid=element_blank(),
+        legend.position="top",
+        strip.background = element_rect(colour="white", fill="white"), #facet formatting
+        panel.spacing.x = unit(1.5, "lines"), #facet spacing for x axis
+        strip.text.x = element_text(size=12, face="bold"), #facet labels
+        strip.text.y = element_text(size=12, face="bold"), #facet labels
+        legend.title=element_blank(),
+        legend.text=element_text(size=12),
+        panel.border=element_rect(color="black",size=1.5),
+        axis.text=element_text(size=12,color="black"),
+        axis.title=element_text(size=14,color="black",face="bold"))
+
+save_plot("output/fig_fentonloss_relabund.tiff", gg_fenton_loss_relabund, 
+          base_width = 8, base_height = 5)
+#
+
+ # 5. NOSC graph ----
 # graph with facets
 
 fticr_data_nosc$goethite = factor(fticr_data_nosc$goethite, levels = c("pre-Goethite", "post-Goethite"))
 
-gg_nosc=ggplot(
-  fticr_data_nosc, aes(x = NOSC, fill = Forest))+
+gg_nosc=
+  ggplot(fticr_data_nosc, aes(x = NOSC, fill = Forest))+
   geom_histogram(binwidth = 0.10, position = "identity", alpha = 0.4, color = "black")+
   xlim(-2, 2)+
   ylim(0,75)+
-  facet_grid(goethite~fenton)+
+  facet_grid(treatment~Forest)+
   
   theme_bw()+
   theme(legend.position="top",
@@ -697,6 +1094,17 @@ ggplot(fticr_data_4[fticr_data_4$treatment=="PostFentonGoethite",],
   ggtitle("PostFentonGoethite")
 
 #
+# 6. Number of O ----
+fticr_data_goethite_oxygen = merge(fticr_data_goethite_relabund, fticr_meta_elements, by = "Mass", all.x = T)
+
+# select only relevant columns
+fticr_data_goethite_oxygen %>% 
+  select(Mass, Forest, Fenton, PreGoethite, preg_rel_abund, adsorbed, new, O)->
+  fticr_data_goethite_oxygen2
+
+ggplot(fticr_data_goethite_oxygen2[!is.na(fticr_data_goethite_oxygen2$adsorbed),], aes(x = factor(O), y = preg_rel_abund, color = adsorbed))+
+  geom_boxplot()
+
 ### ### ### ----
 ## intensity vs. O ---------------------- ## -----
 hw_pref_o=summarySE(hw_fenton,measurevar = "PreFentonHW", groupvars=c("O"),na.rm=TRUE);hw_pref_o
