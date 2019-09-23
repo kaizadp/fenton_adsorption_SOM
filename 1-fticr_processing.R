@@ -548,7 +548,8 @@ fticr_data_2_el = merge(fticr_data_2, fticr_meta_elements, by = "Mass", all.x = 
 
 # remove unnecessary columns and gather the elements
 fticr_data_2_el %>% 
-  select(-PreFentonGoethite, -PostFenton, -PostFentonGoethite) %>% 
+  select(-PreFentonGoethite, -PostFentonGoethite) %>% 
+  gather(fenton, intensity, PreFenton:PostFenton) %>% 
   gather(element, el_ratio, C:Na)->
   fticr_data_2_el2
 
@@ -557,12 +558,12 @@ fticr_data_2_el2[fticr_data_2_el2==0]<-NA
 fticr_data_2_el2 = fticr_data_2_el2[complete.cases(fticr_data_2_el2),]
 # get element counts
 fticr_data_el_count = summarySE(fticr_data_2_el2, measurevar = "el_ratio",
-                                groupvars = c("Forest","element"),
+                                groupvars = c("Forest","fenton","element"),
                                 na.rm = TRUE)
-fticr_data_el_count$el_ratio = round(fticr_data_el_count$el_ratio,1)
+fticr_data_el_count$summary = paste(round(fticr_data_el_count$el_ratio,1), "\u00B1", round(fticr_data_el_count$se,1))
 
 data_prefenton_el_summarytable = dcast(fticr_data_el_count,
-                                    element~Forest, value.var = "el_ratio")
+                                    element~Forest+fenton, value.var = "summary")
 
 #### OUTPUT
 write_csv(data_prefenton_el_summarytable, path = "fticr/fticr_prefenton_el_counts.csv")

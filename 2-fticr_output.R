@@ -185,9 +185,9 @@ gg_vk_fentonloss =
   geom_point(size=1,stroke=1)+
   xlim(0.0,1.2)+
   ylim(0.0,2.5)+
-  scale_shape_manual(values=c(19,4),limits=c("lost","gained"))+
+  scale_shape_manual(values=c(19,4),limits=c("gained","lost"))+
   #scale_color_discrete(limits=c("lost","gained"))+
-  scale_color_brewer(palette = "Set1",limits=c("lost","gained"))+
+  scale_color_brewer(palette = "Set1",limits=c("gained","lost"))+
   facet_wrap(~Forest)+
   #  stat_ellipse(aes(fticr_data_fenton2[fticr_data_fenton2$loss=="conserved",], color = loss))+
   
@@ -1034,12 +1034,13 @@ save_plot("output/fig_fentonloss_relabund.tiff", gg_fenton_loss_relabund,
 
 fticr_data_nosc$goethite = factor(fticr_data_nosc$goethite, levels = c("pre-Goethite", "post-Goethite"))
 
-gg_nosc=
-  ggplot(fticr_data_nosc, aes(x = NOSC, fill = Forest))+
+gg_nosc =
+  ggplot(fticr_data_nosc[fticr_data_nosc$goethite=="pre-Goethite",], 
+         aes(x = NOSC, fill = Forest))+
   geom_histogram(binwidth = 0.10, position = "identity", alpha = 0.4, color = "black")+
   xlim(-2, 2)+
   ylim(0,75)+
-  facet_grid(treatment~Forest)+
+  facet_grid(fenton~Forest)+
   
   theme_bw()+
   theme(legend.position="top",
@@ -1053,7 +1054,7 @@ gg_nosc=
         axis.text=element_text(size=12,color="black"),
         axis.title=element_text(size=14,color="black",face="bold")); gg_nosc
 
-save_plot("output/nosc_0.10.tiff", gg_nosc, 
+save_plot("output/fig5_nosc_0.10.tiff", gg_nosc, 
           base_width = 10, base_height = 8)
 
 #
