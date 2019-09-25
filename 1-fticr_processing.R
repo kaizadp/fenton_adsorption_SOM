@@ -4,6 +4,7 @@
 ----------------------
 
 source("0-packages.R")
+# ---------------------------------------------------------------------------- ---- 
 
 # 1. load files ---------------------- ####
 ## 1.1 create metadata file ----
@@ -41,7 +42,8 @@ fticr_meta %>%
          NOSC, 
          Class,
          KM_CH2, KMD_CH2,
-         AI_0)->
+         DBE, AI_0,
+         C:Na)->
   fticr_meta_subset
 
 # create a subset with only Mass and Class
@@ -85,7 +87,7 @@ fticr_data %>%
   select(Mass,ends_with("SW"))->
   fticr_data_sw  
 
-# then, rename to remove the "HW"/"SW" qualifier in the column name. Instead, replace it with a new column "Forest
+# then, rename to remove the "HW"/"SW" qualifier in the column name. Instead, replace it with a new column "Forest"
 
 fticr_data_hw %>% 
   mutate(Forest = "HW") %>% 
@@ -108,7 +110,7 @@ fticr_data_sw %>%
 fticr_data_2 = rbind(fticr_data_hw,fticr_data_sw)
 
 ## OUTPUT
-write_csv(fticr_data_2, path = "fticr/fticr_data_master.csv")
+# write_csv(fticr_data_2, path = "fticr/fticr_data_master.csv")
 
 # gather, to make a longform file
 
@@ -125,19 +127,20 @@ soil_key$Fenton = factor(soil_key$Fenton, levels = c("PreFenton","PostFenton"))
 soil_key$Goethite = factor(soil_key$Goethite, levels = c("PreGoethite","PostGoethite"))
 soil_key$Treatment = factor(soil_key$Treatment, levels = c("PreFenton","PostFenton","PreFentonGoethite","PostFentonGoethite"))
 
-
+# data files for each forest/treatment
 hw_pref = read_csv("data/hw_prefenton.csv")
 hw_postf = read_csv("data/hw_postfenton.csv")
 sw_pref = read_csv("data/sw_prefenton.csv")
 sw_postf = read_csv("data/sw_postfenton.csv")
 
+# combine all raw data files
 fticr_data_raw = merge(hw_pref, hw_postf, by = "mass")
 fticr_data_raw = merge(fticr_data_raw, sw_pref, by = "mass")
 fticr_data_raw = merge(fticr_data_raw, sw_postf, by = "mass")
 
 names(fticr_data_raw)
 
-# rename all the f-ing columns
+# rename all the f-ing columns to be consistent with the KEY
 fticr_data_raw %>% 
   dplyr::rename(Mass = mass) %>% 
   mutate(Mass = round(Mass,4)) %>% # round the mass to four decimals
@@ -182,38 +185,34 @@ fticr_data_raw2 = merge(fticr_meta_class,fticr_data_raw,by = "Mass", all.y = T)
 
 fticr_data_raw2 = fticr_data_raw2[complete.cases(fticr_data_raw2),]
 
+# write_csv(fticr_data_raw, path = "fticr/fticr_data_raw.csv")
 
-write_csv(fticr_data_raw, path = "fticr/fticr_data_raw.csv")
 
+# convert to long-form and then merge with the soil KEY
 fticr_data_raw2 %>% 
   gather(soil, intensity, Soil_1:Soil_24)->
   fticr_data_raw_long
 
 fticr_data_raw_long = merge(fticr_data_raw_long,soil_key, by = "soil", all.x = T)
+
+### OPUTPUT
 write_csv(fticr_data_raw_long, path = "fticr/fticr_data_raw_long.csv")
 
 #
 
+# ---------------------------------------------------------------------------- ---- 
+
 # 2 process data ---------------------- ####
-## 2.1 create a new file for Fenton ----
+## create a new file for Fenton ----
 
 # select only the relevant columns. don't include the Goethite columns
 fticr_data_2 %>% 
   select(Mass, Forest, PreFenton, PostFenton)->
   fticr_data_fenton
 
-# create new column for molecules gained/lost during the Fenton reaction
-setDT(fticr_data_fenton)[PreFenton >0 & PostFenton == 0, loss := "lost"]
-fticr_data_fenton[PreFenton == 0 & PostFenton > 0, loss := "gained"]
-fticr_data_fenton[PreFenton > 0 & PostFenton > 0, loss := "conserved"]
-fticr_data_fenton$loss = ordered(fticr_data_fenton$loss, levels = c("lost", "gained", "conserved"))
-
-## OUTPUT
-write_csv(fticr_data_fenton,path = "fticr/fticr_data_fenton.csv")
-
 #
 
-## 2.2 create a new file for goethite ----
+## create a new file for goethite ----
 # split the MASTER file into two files, for pre-Goethite vs. post-Goethite. gather and add columns indicating whether pre or post F. and then combine. 
 fticr_data_2 %>% 
   select(Mass, Forest, PreFenton,PostFenton)->
@@ -238,8 +237,36 @@ fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
 
 # `cbind` keeps duplicate columns, `merge` deletes duplicate columns
 
+#
+# ---------------------------------------------------------------------------- ---- 
 
-## 2.3 create new column for adsorbed/not adsorbed. ----
+## 2.1 PROCESSING FENTON: determining molecules lost and gained ----
+# dataframe name is fticr_data_fenton
+
+# create new column for molecules gained/lost during the Fenton reaction
+setDT(fticr_data_fenton)[PreFenton >0 & PostFenton == 0, loss := "lost"]
+fticr_data_fenton[PreFenton == 0 & PostFenton > 0, loss := "gained"]
+fticr_data_fenton[PreFenton > 0 & PostFenton > 0, loss := "conserved"]
+fticr_data_fenton$loss = ordered(fticr_data_fenton$loss, levels = c("lost", "gained", "conserved"))
+
+### OUTPUT
+write_csv(fticr_data_fenton,path = "fticr/fticr_data_fenton.csv")
+
+### 2.1.1 fenton relative abundance lost vs. gained ----
+# subset the fenton2 to get just the lost/gained column
+
+fticr_data_fenton2 %>% 
+  select(Mass, Forest, loss)->
+  fticr_data_fenton_loss
+
+# merge loss file with data_4_hcoc
+
+fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
+
+
+## 2.2 PROCESSING GOETHITE: determining adsorbed vs. not adsorbed molecules ----
+### 2.2.1. adsorbed/not adsorbed (binary classification) ----
+
 # Using S/N method of Avneri-Katz 2017
 # find minimum intensity
 # divide all by minimum. if >2, SN = 10
@@ -253,48 +280,32 @@ fticr_data_goethite[is.na(fticr_data_goethite)]<-0
 
 
 ## don't need this any more
+      # fticr_data_goethite %>% 
+      #  mutate(PreG_sn = PreGoethite/minimum) %>% 
+      #  mutate(PostG_sn = PostGoethite/minimum)->
+      #  fticr_data_goethite
 
-# fticr_data_goethite %>% 
-#  mutate(PreG_sn = PreGoethite/minimum) %>% 
-#  mutate(PostG_sn = PostGoethite/minimum)->
-#  fticr_data_goethite
-
+# create a column for adsorbed/not adsorbed
 setDT(fticr_data_goethite)[PreGoethite/minimum >2 & PostGoethite/minimum < 1, adsorbed := "adsorbed"]
 fticr_data_goethite[PreGoethite/minimum >2 & PostGoethite/minimum > 1, adsorbed := "not adsorbed"]
 
-# new molecules created post-adsorption
+# create a column for new molecules created post-adsorption
 setDT(fticr_data_goethite)[PreGoethite/minimum == 0 & PostGoethite/minimum > 1, new := "new molecules"]
 
-## OUTPUT
-write_csv(fticr_data_goethite,path = "fticr/fticr_data_goethite.csv")
-#
-
-
-# 3. summary groups ---------------------- ####
-## 3.0 relative abundance of each formula ----
-fticr_data_3 %>% 
-  dplyr::group_by(Forest, treatment) %>% 
-  dplyr::mutate(total = sum(intensity)) %>% 
-  mutate(rel_abund = (intensity/total)*100)->
-  fticr_data_4
-
-fticr_data_4_hcoc = merge(fticr_data_4,fticr_meta_hcoc, by = "Mass", all.x = T)
-
-fticr_data_4_hcoc %>% 
-  dplyr::group_by(Forest, treatment) %>% 
-  dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
- mutate(perc = cut(percentile, 
-                    breaks = c(-Inf,25, 50, 75, Inf),
-                    labels = c("lowest 25%", "third 25 %", "second 25 %", "top 25 %")))->
-  fticr_data_4_hcoc
-
 ### OUTPUT
-write_csv(fticr_data_4_hcoc, path = "fticr/fticr_data_hcoc_percentile.csv")
+write_csv(fticr_data_goethite,path = "fticr/fticr_data_goethite.csv")
+
 #
 
-## 3.0-2 relative strength of sorption ----
+### 2.2.2. relative strength of sorption ----
+# technique from Williams, Borch et al. 2018. Soil Systems
+# Calculate relative abundance of each formula in the PreG and PostG samples. Substract PostG-PreG to calculate delta-abundance.
+# Use delta-abundance to group the molecules into seven classes:
+# < -0.00015 = most sorbed | -0.00010 = more sorbed | -0.00005 = sorbed | 0.00005 = minimal change | 0.00010 = unbound | 0.00015 = more unbound | > 0.00015 = most unbound,
+# ALL the calculations are done in one step.
+
 fticr_data_goethite %>% 
-  mutate(Fenton = factor(Fenton, levels = c("PreFenton","PostFenton"))) %>% 
+  mutate(Fenton = factor(Fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
   dplyr::group_by(Forest,Fenton) %>% 
   dplyr::mutate(preg_total = sum(PreGoethite)) %>% 
   dplyr::mutate(postg_total = sum(PostGoethite)) %>% 
@@ -302,8 +313,8 @@ fticr_data_goethite %>%
   mutate(postg_rel_abund = PostGoethite/postg_total) %>%
   mutate(delta_abund = postg_rel_abund - preg_rel_abund) %>% 
   mutate(sorption_frac = cut(delta_abund, 
-                    breaks = c(-Inf,-0.00015, -0.00010, -0.00005, 0.00005,0.00010,0.00015,Inf),
-                    labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound")))->
+                             breaks = c(-Inf,-0.00015, -0.00010, -0.00005, 0.00005,0.00010,0.00015,Inf),
+                             labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound")))->
   fticr_data_goethite_relabund
 
 fticr_data_goethite_relabund = merge(fticr_data_goethite_relabund,fticr_meta_hcoc, by = "Mass", all.x = T)  
@@ -311,23 +322,120 @@ fticr_data_goethite_relabund = merge(fticr_data_goethite_relabund,fticr_meta_hco
 ### OUTPUT
 write_csv(fticr_data_goethite_relabund, path = "fticr/fticr_data_goethite_relabund.csv")
 
-## 3.0-3 relative abundance of groups within sorbed vs. not sorbed ----
-## 3.0-4 fenton relative abundance lost vs. gained ----
-# subset the fenton2 to get just the lost/gained column
 
-fticr_data_fenton2 %>% 
-  select(Mass, Forest, loss)->
-  fticr_data_fenton_loss
+### 2.2.3. relative abundance of adsorbed and non-adsorbed classes ----
+# first, subset the goethite_relabund file
 
-# merge loss file with data_4_hcoc
+fticr_data_goethite_relabund %>% 
+  select(Mass, Forest, Fenton, PreGoethite, adsorbed, new, sorption_frac)->
+  fticr_data_goethite_relabund_adsorbed
 
-fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
+# the adsorbed_frac column has multiple levels. choose only the "most sorbed" and "most unbound"
+fticr_data_goethite_relabund_adsorbed %>% 
+  filter(sorption_frac==c("most sorbed","most unbound"))->
+  fticr_data_goethite_relabund_adsorbed  
+
+    # fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
+    #  fticr_data_goethite_relabund_adsorbed$sorption_frac=="most sorbed"|
+    #    fticr_data_goethite_relabund_adsorbed$sorption_frac=="most unbound",]
+
+# merge with the class meta file
+fticr_data_goethite_relabund_adsorbed = merge(fticr_data_goethite_relabund_adsorbed, fticr_meta_class, by = "Mass", all.x = T)
+
+# remove the "Other" class
+fticr_data_goethite_relabund_adsorbed %>% 
+  filter(!Class=="Other")->
+  fticr_data_goethite_relabund_adsorbed
+
+    # fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
+    #  !fticr_data_goethite_relabund_adsorbed$Class=="Other",]
+
+
+# now follow steps for relative abundance of groups
+# 
+fticr_data_goethite_relabund_adsorbed %>% 
+  group_by(Forest,Fenton, sorption_frac,Class) %>% 
+  dplyr::summarise(compounds = sum(PreGoethite)) ->
+  fticr_data_goethite_relabund_adsorbed_groups
+
+fticr_data_goethite_groups_wide = spread(fticr_data_goethite_relabund_adsorbed_groups,Class,compounds)
+fticr_data_goethite_groups_wide = as.data.frame(fticr_data_goethite_groups_wide)
+
+# replace NA with 0
+fticr_data_goethite_groups_wide[is.na(fticr_data_goethite_groups_wide)]<-0
+
+# create a `total` column adding counts across all "group" columns (columns 4-10)
+fticr_data_goethite_groups_wide %>%
+  mutate(total = rowSums(.[4:11])) ->
+  fticr_data_goethite_groups_wide
+
+## relative abundance:
+# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
+fticr_data_goethite_groups_wide[,-c(1:3)] %>% 
+  sapply('/', (fticr_data_goethite_groups_wide$total)/100)->
+  fticr_goethite_data_abundance
+
+fticr_goethite_data_abundance = data.frame(fticr_goethite_data_abundance)
+goethite_soilnames = data.frame(fticr_data_goethite_groups_wide[,c(1:3)])
+
+fticr_goethite_data_relabundance = cbind(goethite_soilnames,fticr_goethite_data_abundance)
+
+# convert to long form and then do summary
+fticr_goethite_data_relabundance_long = fticr_goethite_data_relabundance %>% 
+  gather(Class, relabund, AminoSugar:total)
+
+
+fticr_goethite_relabundance_summary = summarySE(fticr_goethite_data_relabundance_long, measurevar = "relabund", 
+                                                groupvars = c("Forest","Fenton","sorption_frac","Class"),na.rm = TRUE)
+fticr_goethite_relabundance_summary$relativeabundance = paste((round(fticr_goethite_relabundance_summary$relabund,2)),
+                                                              "\u00B1",
+                                                              round(fticr_goethite_relabundance_summary$se,2))
+fticr_goethite_relabundance_summarytable = dcast(fticr_goethite_relabundance_summary,
+                                                 Class~Forest+Fenton+sorption_frac,value.var = "relabund") 
+## use this in the graph for relative distribution
 
 
 #
-## 3.1 overall summary of groups by treatment ---- 
-# use the longform version of the master file
-##
+# ---------------------------------------------------------------------------- ---- 
+
+# 3 relative abundance of each formula ----
+# this portion of the script will assign the molecules into quartiles based on relative abundance.
+# this classification will be used in Van Krevelen diagrams
+
+# fticr_data_3 is the longform master file. calculate relative abundance of each molecule
+
+fticr_data_3 %>% 
+  dplyr::group_by(Forest, treatment) %>% 
+  dplyr::mutate(total = sum(intensity)) %>% 
+  mutate(rel_abund = (intensity/total)*100)->
+  fticr_relabund_molecules
+
+# then create a column for quartiles
+fticr_relabund_molecules %>% 
+  dplyr::group_by(Forest, treatment) %>% 
+  dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
+  mutate(perc = cut(percentile, 
+                    breaks = c(-Inf,25, 50, 75, Inf),
+                    labels = c("lowest 25%", "third 25 %", "second 25 %", "top 25 %")))->
+  fticr_relabund_molecules
+
+# merge with the hcoc file
+fticr_relabund_molecules_hcoc = merge(fticr_relabund_molecules,fticr_meta_hcoc, by = "Mass", all.x = T)
+
+### OUTPUT
+write_csv(fticr_relabund_molecules_hcoc, path = "fticr/fticr_molecules_percentile_hcoc.csv")
+# this file will be used for the Van Krevelen plots (preFenton and postFenton)
+
+#
+
+
+# ---------------------------------------------------------------------------- ---- 
+
+
+# 4 summary of groups ----
+
+## 4.1 overall summary of groups by treatment ---- 
+# use the longform version of the master raw file, fticr_data_raw_long
 
 # summarizing by groups
 fticr_data_raw_long %>% 
@@ -335,8 +443,7 @@ fticr_data_raw_long %>%
   dplyr::summarize(compounds = sum(intensity)) ->
   fticr_data_soil_groups
 
-# fticr_data_groups$compounds = as.numeric(fticr_data_groups$compounds)
-
+# go from longform to wide form to help with calculations
 fticr_data_soil_groups_wide = spread(fticr_data_soil_groups,Class,compounds)
 fticr_data_soil_groups_wide = as.data.frame(fticr_data_soil_groups_wide)
 
@@ -370,46 +477,22 @@ fticr_relabundance_summary = summarySE(fticr_data_relabundance_long, measurevar 
 fticr_relabundance_summary$relativeabundance = paste((round(fticr_relabundance_summary$relabund,2)),
                                                           "\u00B1",
                                                           round(fticr_relabundance_summary$se,2))
+
+# create a summary table of relative abundances for each treatment
 fticr_relabundance_summarytable = dcast(fticr_relabundance_summary,
                                                     Goethite+Class~Forest+Fenton,value.var = "relativeabundance") 
 
+# subset only the preGoethite data (i.e. initial and postFenton)
 fticr_relabundance_summarytable_fenton = fticr_relabundance_summarytable[fticr_relabundance_summarytable$Goethite=="PreGoethite",]
-
-
 ## ^^^ this is the file we want
 
-
-#### summary table for initial samples only
-# fticr_relabundance_summary_initial = fticr_relabundance_summary[fticr_relabundance_summary$Treatment=="PreFenton",]
-# fticr_relabundance_summary_initial_summarytable = dcast(fticr_relabundance_summary_initial,
-#                                                        Class~Forest,value.var = "relativeabundance") 
-
-#### summary table for treatment effects only (non-initial samples)
-# fticr_relabundance_summary_trt = fticr_relabundance_summary[!fticr_relabundance_summary$Treatment=="PreFenton",]
-# fticr_relabundance_summary_trt_summarytable = dcast(fticr_relabundance_summary_trt,
-#                                                Goethite+Class~Forest+Fenton,value.var = "relativeabundance") 
-
-# move Unnamed and total columns to the end
-# "Unnamed" is "Other" for pores
-# fticr_pore_relabundance_summarytable %>% 
-#  select(-Other,Other) %>% 
-#  select(-total,total) ->
-#  fticr_pore_relabundance_summarytable
-
-# remove +/- SE values for the total column
-# fticr_relabundance_summary_summarytable$total="1"
-## ## some cells have +/- 0. probably because n=1 for those. (??!!) double-check. 
-
 ### OUTPUT
-write.csv(fticr_relabundance_summarytable_fenton,"output/table1_fticr_soil_relabundance_groups.csv")
+write.csv(fticr_relabundance_summarytable_fenton,"output/table1_fticr_relabundance_groups.csv")
 # write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
 
-#
 
 #
-
-#
-## 3.2 summary of peaks for fenton and goethite ----
+## 4.2 summary of peaks for fenton and goethite ----
 ### PEAKS, not INTENSITIES
 
 # create a single file that has fenton anf goethite information
@@ -472,76 +555,7 @@ write_csv(data_goethite_newcounts_summarytable, path = "fticr/data_goethite_newc
 
 #
 
-## relative abundance of adsorbed and non-adsorbed classes ----
-# first, subset the goethite_relabund file
-
-fticr_data_goethite_relabund %>% 
-  select(Mass, Forest, Fenton, PreGoethite, adsorbed, new, sorption_frac)->
-  fticr_data_goethite_relabund_adsorbed
-
-# the adsorbed_frac column has multiple levels. choose only the "most sorbed" and "most unbound"
-fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
-  fticr_data_goethite_relabund_adsorbed$sorption_frac=="most sorbed"|
-    fticr_data_goethite_relabund_adsorbed$sorption_frac=="most unbound",]
-
-# merge with the class meta file
-fticr_data_goethite_relabund_adsorbed = merge(fticr_data_goethite_relabund_adsorbed, fticr_meta_class, by = "Mass", all.x = T)
-# remove the "Other" class
-fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
-  !fticr_data_goethite_relabund_adsorbed$Class=="Other",]
-
-
-# now follow steps for relative abundance of groups
-
-# 
-fticr_data_goethite_relabund_adsorbed %>% 
-  group_by(Forest,Fenton, sorption_frac,Class) %>% 
-  dplyr::summarise(compounds = sum(PreGoethite)) ->
-  fticr_data_goethite_relabund_adsorbed_groups
-
-# fticr_data_groups$compounds = as.numeric(fticr_data_groups$compounds)
-
-fticr_data_goethite_groups_wide = spread(fticr_data_goethite_relabund_adsorbed_groups,Class,compounds)
-fticr_data_goethite_groups_wide = as.data.frame(fticr_data_goethite_groups_wide)
-
-# replace NA with 0
-
-fticr_data_goethite_groups_wide[is.na(fticr_data_goethite_groups_wide)]<-0
-
-# create a `total` column adding counts across all "group" columns (columns 4-10)
-fticr_data_goethite_groups_wide %>%
-  mutate(total = rowSums(.[4:11])) ->
-  fticr_data_goethite_groups_wide
-
-## relative abundance:
-# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
-fticr_data_goethite_groups_wide[,-c(1:3)] %>% 
-  sapply('/', (fticr_data_goethite_groups_wide$total)/100)->
-  fticr_goethite_data_abundance
-
-fticr_goethite_data_abundance = data.frame(fticr_goethite_data_abundance)
-goethite_soilnames = data.frame(fticr_data_goethite_groups_wide[,c(1:3)])
-
-fticr_goethite_data_relabundance = cbind(goethite_soilnames,fticr_goethite_data_abundance)
-
-# convert to long form and then do summary
-fticr_goethite_data_relabundance_long = fticr_goethite_data_relabundance %>% 
-  gather(Class, relabund, AminoSugar:total)
-
-
-fticr_goethite_relabundance_summary = summarySE(fticr_goethite_data_relabundance_long, measurevar = "relabund", 
-                                       groupvars = c("Forest","Fenton","sorption_frac","Class"),na.rm = TRUE)
-fticr_goethite_relabundance_summary$relativeabundance = paste((round(fticr_goethite_relabundance_summary$relabund,2)),
-                                                     "\u00B1",
-                                                     round(fticr_goethite_relabundance_summary$se,2))
-fticr_goethite_relabundance_summarytable = dcast(fticr_goethite_relabundance_summary,
-                                        Class~Forest+Fenton+sorption_frac,value.var = "relabund") 
-
-fticr_relabundance_summarytable_fenton = fticr_relabundance_summarytable[fticr_relabundance_summarytable$Goethite=="PreGoethite",]
-
-
-#
-## 3.3 summary of elements for initial ####
+## 4.3 summary of elements for initial ####
 
 # merge data_raw_long with meta_class
 fticr_data_2_el = merge(fticr_data_2, fticr_meta_elements, by = "Mass", all.x = T)
@@ -569,7 +583,7 @@ data_prefenton_el_summarytable = dcast(fticr_data_el_count,
 write_csv(data_prefenton_el_summarytable, path = "fticr/fticr_prefenton_el_counts.csv")
 
 #
-## 3.4 summary of elements for fenton and goethite ----
+## 4.4 summary of elements for fenton and goethite ----
 
 # merge data_fg_merged2 with meta_class
 data_fg_merged_el = merge(data_fg_merged2,fticr_meta_elements, by = "Mass", all.x = T)
@@ -633,39 +647,45 @@ write_csv(data_goethite_new_el_summarytable, path = "fticr/data_goethite_new_el_
 
 
 #
+# ---------------------------------------------------------------------------- ---- 
+# ---------------------------------------------------------------------------- ---- 
+# ---------------------------------------------------------------------------- ---- 
+
 # 4. NOSC processing  ---------------------- ####
-fticr_data_4 = merge (fticr_data_3,fticr_meta_subset, by = "Mass", all = T)
+fticr_data_nosc = merge (fticr_data_3,fticr_meta_subset, by = "Mass", all = T)
 
 # remove all rows without a value
 # the absences are coded as 0, which will be included in the histogram. 
 # so convert all zeroes to NA and then remove all NA
 
-fticr_data_4 %>%
+fticr_data_nosc %>%
   mutate_all(~replace(., . == 0, NA))->
-  fticr_data_4
+  fticr_data_nosc
 
-fticr_data_4 = fticr_data_4[complete.cases(fticr_data_4),]
+fticr_data_nosc = fticr_data_nosc[complete.cases(fticr_data_nosc),]
 
 # now make a subset with only relevant columns
 
-fticr_data_4 %>% 
+fticr_data_nosc %>% 
   select(Mass, Forest, treatment, intensity, NOSC, Class)->
-  fticr_data_nosc
+  fticr_data_nosc2
 
 # split the treatment column into fenton and goethite
 # this makes faceting easier for the graphs
 
-setDT(fticr_data_nosc)[treatment == "PreFenton", fenton := "initial"]
-fticr_data_nosc[treatment == "PreFentonGoethite", fenton := "initial"]
-fticr_data_nosc[treatment == "PostFenton", fenton := "post-Fenton"]
-fticr_data_nosc[treatment == "PostFentonGoethite", fenton := "post-Fenton"]
+setDT(fticr_data_nosc2)[treatment == "PreFenton", fenton := "initial"]
+fticr_data_nosc2[treatment == "PreFentonGoethite", fenton := "initial"]
+fticr_data_nosc2[treatment == "PostFenton", fenton := "post-Fenton"]
+fticr_data_nosc2[treatment == "PostFentonGoethite", fenton := "post-Fenton"]
 
-setDT(fticr_data_nosc)[treatment == "PreFenton", goethite := "pre-Goethite"]
-fticr_data_nosc[treatment == "PostFenton", goethite := "pre-Goethite"]
-fticr_data_nosc[treatment == "PreFentonGoethite", goethite := "post-Goethite"]
-fticr_data_nosc[treatment == "PostFentonGoethite", goethite := "post-Goethite"]
+setDT(fticr_data_nosc2)[treatment == "PreFenton", goethite := "pre-Goethite"]
+fticr_data_nosc2[treatment == "PostFenton", goethite := "pre-Goethite"]
+fticr_data_nosc2[treatment == "PreFentonGoethite", goethite := "post-Goethite"]
+fticr_data_nosc2[treatment == "PostFentonGoethite", goethite := "post-Goethite"]
 
-write_csv(fticr_data_nosc, path = "fticr/fticr_data_nosc.csv")
+### OUTPUT
+write_csv(fticr_data_nosc2, path = "fticr/fticr_data_nosc.csv")
+
 
 #
 #  ----------------------  ---------------------- #### ####

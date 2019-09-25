@@ -505,10 +505,18 @@ gg_vk_adsorp_frac =
   ylab("H/C")+
   
   #annotate("text", label = "HW, preF", x = 0.1, y = 2.4)+ 
+ 
+  geom_vline(xintercept = 0.3,color="black",linetype="solid")+
+  geom_vline(xintercept = 0.6,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="solid")+
+  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="solid")+
   
-  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
-  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+
-  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+
+  
+#  geom_hline(yintercept = 1.5,color="black",linetype="dashed")+ #aliph
+#  geom_vline(xintercept = 0.3,color="black",linetype="dashed")+
+#  geom_vline(xintercept = 0.6,color="black",linetype="dashed")+
   
 #  annotate("text", label = "aliphatic", x = 0.4, y = 2.4)+ 
 #  annotate("text", label = "aromatic", x = 1.0, y = 0.5)+ 
@@ -530,7 +538,7 @@ gg_vk_adsorp_frac =
         axis.text=element_text(size=12,color="black"),
         axis.title=element_text(size=14,color="black",face="bold"))
 
-save_plot("output/fig3_vankrev_adsorbed_frac.tiff", gg_vk_adsorp_frac, 
+save_plot("output/fig4a_vankrev_adsorbed_frac.tiff", gg_vk_adsorp_frac, 
           base_width = 10, base_height = 8)
 
 #
@@ -574,6 +582,55 @@ facet_grid(Fenton~Forest+El_comp) +
         panel.border=element_rect(color="black",size=1.5),
         axis.text=element_text(size=12,color="black"),
         axis.title=element_text(size=14,color="black",face="bold"))
+
+#
+#
+# 4.3 adsorbed/non-adsorbed by O, N ----
+fticr_data_goethite3 = merge(fticr_data_goethite_relabund_subset, fticr_meta_elements, by = "Mass", all.x = T)
+fticr_data_goethite3_N = fticr_data_goethite3[fticr_data_goethite3$N>0,]
+
+ggplot(fticr_data_goethite3_N[fticr_data_goethite3_N$sorption_frac=="most sorbed"|
+                              fticr_data_goethite3_N$sorption_frac=="most unbound",],
+        aes(y = PreGoethite, x = as.factor(O)))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~sorption_frac)
+  geom_boxplot()
+
+fticr_data_goethite4 = merge(fticr_data_goethite_relabund, fticr_meta_elements, by = "Mass", all.x = T)
+fticr_data_goethite4 = merge(fticr_data_goethite4, fticr_meta_subset, by = "Mass", all.x = T)
+
+ggplot(fticr_data_goethite4[fticr_data_goethite4$sorption_frac=="most sorbed"|
+                                  fticr_data_goethite4$sorption_frac=="most unbound",],
+         aes(y = delta_abund, x = as.factor(O),  fill=Class))+
+    geom_bar(stat = "identity")+
+    facet_wrap(~Fenton)+
+  scale_fill_brewer(palette = "Set1")+
+  geom_hline(yintercept = 0)
+geom_boxplot()
+  
+ggplot(fticr_data_goethite4[fticr_data_goethite4$Class=="Lignin" &
+                            fticr_data_goethite4$sorption_frac=="most sorbed" |
+                              fticr_data_goethite4$sorption_frac=="most unbound",],
+       aes(y = delta_abund, x = as.factor(O), fill=sorption_frac))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~Fenton)
+
+ggplot(fticr_data_goethite4[fticr_data_goethite4$Class=="Lignin"|
+                              fticr_data_goethite4$Class=="Protein"|
+                              fticr_data_goethite4$Class=="Tannin"|
+                              fticr_data_goethite4$Class=="Carb",],
+       aes(y = preg_rel_abund, x = as.factor(O), fill = Fenton))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  facet_wrap(~Class)+
+  scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))
+
+
+fticr_data_goethite4 %>% 
+  group_by(sorption_frac, Class) %>% 
+  dplyr::summarise(median = median(as.numeric(O)))->
+  median
+
+median(as.numeric(fticr_fenton_loss_relabund_o$O))
 
 #
 # 4.3 individual plots -- don't do ----
@@ -968,11 +1025,12 @@ fticr_goethite_data_relabundance_long2 = fticr_goethite_data_relabundance_long[!
 gg_relabund_adsorbed = 
   ggplot(fticr_goethite_data_relabundance_long2,
        aes(x = Class, y = relabund, fill = sorption_frac))+
-  geom_bar(stat = "identity", position = position_dodge(width = 0.6), color = "black", width = 0.5)+
+  geom_bar(stat = "summary", position = position_dodge(width = 0.7), color = "black", width = 0.5)+
   #scale_fill_brewer(palette = "PuOr")+
   scale_fill_manual(values = c("chocolate3","mediumpurple3"))+
   facet_grid(Fenton~Forest)+
   ylab("% of total intensity")+
+  xlab("")+
   theme_bw()+
   theme(panel.grid=element_blank(),
         legend.position="top",
@@ -984,10 +1042,11 @@ gg_relabund_adsorbed =
         legend.text=element_text(size=12),
         panel.border=element_rect(color="black",size=1.5),
         axis.text=element_text(size=12,color="black"),
+        axis.text.x = element_text(angle = 90, hjust = 1),
         axis.title=element_text(size=14,color="black",face="bold"))
 
 save_plot("output/fig5_adsorbed_relabund.tiff", gg_relabund_adsorbed, 
-          base_width = 13, base_height = 7)
+          base_width = 8, base_height = 7)
   
 #
 
@@ -1027,6 +1086,18 @@ gg_fenton_loss_relabund=
 
 save_plot("output/fig_fentonloss_relabund.tiff", gg_fenton_loss_relabund, 
           base_width = 8, base_height = 5)
+#
+
+  ggplot(na.omit(fticr_fenton_loss_relabund_o), aes(y = as.numeric(O), x = loss, fill = loss))+
+  geom_boxplot()+
+    stat()
+
+fticr_fenton_loss_relabund_o %>% 
+  group_by(loss, Forest) %>% 
+  dplyr::summarise(median = median(as.numeric(O)))
+  
+  median(as.numeric(fticr_fenton_loss_relabund_o$O))
+
 #
 
  # 5. NOSC graph ----
