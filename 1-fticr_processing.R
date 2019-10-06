@@ -648,6 +648,34 @@ write_csv(data_goethite_new_el_summarytable, path = "fticr/data_goethite_new_el_
 
 #
 # ---------------------------------------------------------------------------- ---- 
+# 4. COUNTS ----
+fticr_data_3 %>% 
+  filter(intensity>0) %>% 
+  group_by(Forest, treatment) %>% 
+  dplyr::summarise(counts = length(Mass))->
+  fticr_data_counts
+
+
+fticr_data_counts2 = summarySE(fticr_data_3[!fticr_data_3$intensity==0,], 
+                               measurevar = "Mass", groupvars = c("treatment"), na.rm = TRUE)
+fticr_data_counts3 = summarySE(fticr_data_3[!fticr_data_3$intensity==0,], 
+                               measurevar = "Mass", groupvars = c("Forest","treatment"), na.rm = TRUE)
+
+fticr_data_3 %>% 
+  filter(treatment=="PreFenton") %>% 
+  dcast(Mass~Forest+treatment, value.var = "intensity") %>% 
+  na_if(.,"0") %>% 
+  dplyr::mutate(counts = case_when(HW_PreFenton>0 & SW_PreFenton>0 ~"both",
+                                   HW_PreFenton>0 & is.na(SW_PreFenton) ~"HW",
+                                   is.na(HW_PreFenton) & SW_PreFenton>0 ~"SW"))->
+  fticr_data_3_dcast
+  
+  
+  
+  
+  
+#  
+# ---------------------------------------------------------------------------- ---- 
 # ---------------------------------------------------------------------------- ---- 
 # ---------------------------------------------------------------------------- ---- 
 
