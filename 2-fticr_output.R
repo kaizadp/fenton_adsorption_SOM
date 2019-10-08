@@ -625,6 +625,25 @@ ggplot(fticr_data_goethite4[fticr_data_goethite4$Class=="Lignin"|
   scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))
 
 
+# create a summary dataframe of total relative intensity vs. number of O
+fticr_data_goethite4 %>% 
+  group_by(Fenton, O, Class) %>% 
+  dplyr::summarize(intensity = sum(preg_rel_abund))->
+  fticr_data_goethite4_summary
+
+# use this file for graph of rel_abund vs. O
+# rel_abund is as a fraction, so multipy by 100 for %
+ggplot(fticr_data_goethite4_summary[fticr_data_goethite4_summary$Class=="Lignin"|
+                                      fticr_data_goethite4_summary$Class=="Protein"|
+                                      fticr_data_goethite4_summary$Class=="Tannin"|
+                                      fticr_data_goethite4_summary$Class=="Carb",],
+       aes(y = intensity*100, x = as.factor(O), fill = Fenton))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  facet_wrap(~Class)+
+  ylab("% intensity")+
+  scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))
+
+
 fticr_data_goethite4 %>% 
   group_by(sorption_frac, Class) %>% 
   dplyr::summarise(median = median(as.numeric(O)))->
@@ -1175,7 +1194,7 @@ fticr_data_goethite_oxygen %>%
   fticr_data_goethite_oxygen2
 
 ggplot(fticr_data_goethite_oxygen2[!is.na(fticr_data_goethite_oxygen2$adsorbed),], aes(x = factor(O), y = preg_rel_abund, color = adsorbed))+
-  geom_boxplot()
+  geom_bar(stat = "identity")
 
 ### ### ### ----
 ## intensity vs. O ---------------------- ## -----

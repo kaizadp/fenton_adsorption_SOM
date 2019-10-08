@@ -689,8 +689,36 @@ fticr_data_3 %>%
   dplyr::summarise(Fenton = length(Mass))-> # create a final dataframe with just the counts
   fticr_fenton_counts  
   
-  
-  
+
+# ---------------------------------------------------------------------------- ---- 
+## ANOVA for fenton effects
+# test if Fenton reaction altered the relative abundances of the different groups in the native soil.
+# we don't need the postGoethite data for this
+# use dataframe `fticr_data_relabundance`
+# one single dplyr command will do everything
+
+fticr_data_relabundance %>% 
+  filter(Goethite=="PreGoethite") %>% # keep only PreGoethite data
+  select(-total) %>% # the total column, which was used to calculate relative abundance, is useless here
+  gather(group, relabund, AminoSugar:Tannin) %>% # convert wide into long-form
+  group_by(Forest,group) %>% 
+  # this is tricky
+  # in one line, calculate the lm -> anova and then retrieve the p-value for that and round it to 4 decimal places
+  dplyr::summarise(p_value = round(anova(lm(log(relabund)~Fenton))$`Pr(>F)`[1],4))->
+  fticr_relabund_fenton_p_value
+
+# effect of forest type on relative abundance
+# same as above, but Fenton and Forest are swapped
+fticr_data_relabundance %>% 
+  filter(Goethite=="PreGoethite") %>% # keep only PreGoethite data
+  select(-total) %>% # the total column, which was used to calculate relative abundance, is useless here
+  gather(group, relabund, AminoSugar:Tannin) %>% # convert wide into long-form
+  group_by(Fenton,group) %>% 
+  # this is tricky
+  # in one line, calculate the lm -> anova and then retrieve the p-value for that and round it to 4 decimal places
+  dplyr::summarise(p_value = round(anova(lm(log(relabund)~Forest))$`Pr(>F)`[1],4))->
+  fticr_relabund_fenton_p_value2
+
 #  
 # ---------------------------------------------------------------------------- ---- 
 # ---------------------------------------------------------------------------- ---- 
