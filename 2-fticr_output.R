@@ -644,8 +644,9 @@ ggplot(fticr_data_goethite4_summary[fticr_data_goethite4_summary$Class=="Lignin"
   scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))
 
 
+# to get median:
 fticr_data_goethite4 %>% 
-  group_by(sorption_frac, Class) %>% 
+  group_by(sorption_frac) %>% 
   dplyr::summarise(median = median(as.numeric(O)))->
   median
 
