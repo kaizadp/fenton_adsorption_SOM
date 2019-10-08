@@ -440,7 +440,7 @@ write_csv(fticr_relabund_molecules_hcoc, path = "fticr/fticr_molecules_percentil
 # summarizing by groups
 fticr_data_raw_long %>% 
   group_by(Forest,Treatment,Fenton, Goethite,soil,Class) %>% 
-  dplyr::summarize(compounds = sum(intensity)) ->
+  dplyr::summarize(compounds = sum(as.numeric(intensity), na.rm = TRUE)) ->
   fticr_data_soil_groups
 
 # go from longform to wide form to help with calculations
@@ -449,7 +449,7 @@ fticr_data_soil_groups_wide = as.data.frame(fticr_data_soil_groups_wide)
 
 # create a `total` column adding counts across all "group" columns (columns 4-10)
 fticr_data_soil_groups_wide %>%
-  mutate(total = rowSums(.[6:12])) ->
+  mutate(total = rowSums(.[6:12], na.rm = TRUE)) ->
   fticr_data_soil_groups_wide
 
 ## relative abundance:
@@ -648,29 +648,46 @@ write_csv(data_goethite_new_el_summarytable, path = "fticr/data_goethite_new_el_
 
 #
 # ---------------------------------------------------------------------------- ---- 
-# 4. COUNTS ----
+# 4. COUNTS for Venn diagram ----
 fticr_data_3 %>% 
   filter(intensity>0) %>% 
   group_by(Forest, treatment) %>% 
   dplyr::summarise(counts = length(Mass))->
   fticr_data_counts
 
-
 fticr_data_counts2 = summarySE(fticr_data_3[!fticr_data_3$intensity==0,], 
                                measurevar = "Mass", groupvars = c("treatment"), na.rm = TRUE)
 fticr_data_counts3 = summarySE(fticr_data_3[!fticr_data_3$intensity==0,], 
                                measurevar = "Mass", groupvars = c("Forest","treatment"), na.rm = TRUE)
 
+# counts of HW vs. SW in native (initial) SOM 
 fticr_data_3 %>% 
-  filter(treatment=="PreFenton") %>% 
-  dcast(Mass~Forest+treatment, value.var = "intensity") %>% 
-  na_if(.,"0") %>% 
+  filter(treatment=="PreFenton") %>% # select only the initial samples 
+  dcast(Mass~Forest+treatment, value.var = "intensity") %>% # wide-form, so forests are in separate columns
+  na_if(.,"0") %>% # replace NA with 0
+  #code for unique vs. both forests
   dplyr::mutate(counts = case_when(HW_PreFenton>0 & SW_PreFenton>0 ~"both",
                                    HW_PreFenton>0 & is.na(SW_PreFenton) ~"HW",
-                                   is.na(HW_PreFenton) & SW_PreFenton>0 ~"SW"))->
-  fticr_data_3_dcast
+                                   is.na(HW_PreFenton) & SW_PreFenton>0 ~"SW")) %>% 
+  group_by(counts)%>% 
+  dplyr::summarise(initial = length(Mass))-> # create a final dataframe with just the counts
+  fticr_initial_counts
   
-  
+# counts of PreFenton vs. PostFenton. ignoring forest type
+fticr_data_3 %>% 
+  filter(treatment=="PreFenton"| treatment == "PostFenton") %>% # select only the Pre-Goethite samples 
+  na_if(.,"0") %>%
+  group_by(Mass,treatment) %>% 
+  dplyr::summarise(intensity= mean(intensity)) %>% 
+  dcast(Mass~treatment, value.var = "intensity") %>% # wide-form, so treatments are in separate columns
+  na_if(.,"0") %>% # replace NA with 0
+  #code for unique vs. both forests
+  dplyr::mutate(counts = case_when(PreFenton>0 & PostFenton>0 ~"both",
+                                   PreFenton>0 & is.na(PostFenton) ~"PostFenton",
+                                   is.na(PreFenton) & PostFenton>0 ~"PreFenton")) %>% 
+  group_by(counts)%>% 
+  dplyr::summarise(Fenton = length(Mass))-> # create a final dataframe with just the counts
+  fticr_fenton_counts  
   
   
   
