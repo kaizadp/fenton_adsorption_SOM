@@ -3,10 +3,32 @@
 ---------------------- 
 ----------------------
 
+
+# DO NOT SOURCE SCRIPT #1.
+# Run Script #1 separately, then start a new session and run this script.
+
 source("0-packages.R")
-source("1-fticr_processing.R")
+
+
+# INPUT FILES
+
+rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
+fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
+goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
+
 
 # ---------------------------------------------------------------------------- ---- 
+
+### 2.1.1 fenton relative abundance lost vs. gained ----
+# subset the fenton2 to get just the lost/gained column
+
+fticr_data_fenton %>% 
+  select(Mass, Forest, loss)->
+  fticr_data_fenton_loss
+
+# merge loss file with data_4_hcoc
+
+fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
 
 
 ### 2.2.3. relative abundance of adsorbed and non-adsorbed classes ----

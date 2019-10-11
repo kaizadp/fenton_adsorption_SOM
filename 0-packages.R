@@ -32,3 +32,13 @@ library(gsheet)
 
 # DATA_DIR               <- "data/"
 # OUTPUT_DIR		         <- "outputs/"
+
+## SET OUTPUT FILES
+
+FTICR_META <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
+FTICR_MASTER_LONG <- "fticr/fticr_master_long.csv" #
+FTICR_RAWMASTER_LONG <- "fticr/fticr_rawmaster_long.csv"
+FTICR_FENTON <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
+FTICR_GOETHITE <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
+
+FTICR_PERCENTILE <- "fticr/fticr_raw_percentile.csv" # relative intensities and percentile classification for native and Fenton extracts

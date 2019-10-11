@@ -56,8 +56,9 @@ fticr_meta %>%
   select(Mass:Na)->
   fticr_meta_elements
 
+### OUTPUT
 # SAVE META FILES
-write_csv(fticr_meta, path = "fticr/fticr_meta.csv")
+write_csv(fticr_meta, FTICR_META)
 write_csv(fticr_meta_hcoc, path = "fticr/fticr_meta_hcoc.csv")
 write_csv(fticr_meta_subset, path = "fticr/fticr_meta_subset.csv")
 write_csv(fticr_meta_elements, path = "fticr/fticr_meta_elements.csv")
@@ -118,7 +119,7 @@ fticr_data_3 = fticr_data_2 %>%
   gather(treatment, intensity, PreFenton:PostFentonGoethite)
 
 ## OUTPUT
-write_csv(fticr_data_3, path = "fticr/fticr_data_master_longform.csv")
+write_csv(fticr_data_3, FTICR_MASTER_LONG)
 
 
 ### 1.2.2 raw files ----
@@ -195,8 +196,8 @@ fticr_data_raw2 %>%
 
 fticr_data_raw_long = merge(fticr_data_raw_long,soil_key, by = "soil", all.x = T)
 
-### OPUTPUT
-write_csv(fticr_data_raw_long, path = "fticr/fticr_data_raw_long.csv")
+### OUTPUT 
+write_csv(fticr_data_raw_long, FTICR_RAWMASTER_LONG)
 
 #
 
@@ -234,9 +235,10 @@ fticr_data_postg %>%
 
 #fticr_data_goethite2 = cbind(fticr_data_preg2,fticr_data_postg2)
 fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
-
 # `cbind` keeps duplicate columns, `merge` deletes duplicate columns
 
+### OUTPUT
+write.csv(fticr_data_goethite,FTICR_GOETHITE,na="")
 #
 # ---------------------------------------------------------------------------- ---- 
 
@@ -250,18 +252,29 @@ fticr_data_fenton[PreFenton > 0 & PostFenton > 0, loss := "conserved"]
 fticr_data_fenton$loss = ordered(fticr_data_fenton$loss, levels = c("lost", "gained", "conserved"))
 
 ### OUTPUT
-write_csv(fticr_data_fenton,path = "fticr/fticr_data_fenton.csv")
+write_csv(fticr_data_fenton, FTICR_FENTON, na = "")
 
-### 2.1.1 fenton relative abundance lost vs. gained ----
-# subset the fenton2 to get just the lost/gained column
+# ---------------------------------------------------------------------- -
 
-fticr_data_fenton2 %>% 
-  select(Mass, Forest, loss)->
-  fticr_data_fenton_loss
+# STOP SCRIPT HERE
+# EVERYTHING ELSE GOES TO THE NEXT SCRIPT FOR ABUNDANCE CALCULATIONS 
 
-# merge loss file with data_4_hcoc
+# ---------------------------------------------------------------------- -
+# ---------------------------------------------------------------------- -
+# ---------------------------------------------------------------------- -
 
-fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
+
+
+### 2.1.1 fenton relative abundance lost vs. gained MOVE TO OTHER SCRIPT? ----
+      # subset the fenton2 to get just the lost/gained column
+      
+      fticr_data_fenton %>% 
+        select(Mass, Forest, loss)->
+        fticr_data_fenton_loss
+      
+      # merge loss file with data_4_hcoc
+      
+      fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
 
 
 ## 2.2 PROCESSING GOETHITE: determining adsorbed vs. not adsorbed molecules ----
