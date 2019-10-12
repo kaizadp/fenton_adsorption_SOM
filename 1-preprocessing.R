@@ -160,12 +160,20 @@ write.csv(raw_data_long,FTICR_RAWMASTER_LONG)
 
 ## PROCESSING DATA FILES ----
 # summarize by treatment and forest type
-raw_data_long %>%
+rawmaster %>%
   group_by(Forest, Treatment, Mass) %>% 
   dplyr::summarise(intensity = mean(intensity)) %>% # calculate avg. intensity
   ungroup %>% 
   spread(Treatment,intensity)-> # then spread to create multiple columns
   data_processed
+
+# create a longform version
+data_processed %>% 
+  gather(Treatment, intensity,3:6)->
+  data_processed_long
+
+### OUTPUT
+write.csv(data_processed_long, FTICR_MASTER_LONG)
 
 ## create a new file for Fenton ----
 

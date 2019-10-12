@@ -11,8 +11,10 @@ source("0-packages.R")
 
 
 # INPUT FILES
+# use this file for meta for now. this may move to a different folder/name later
+meta = read.csv("stomfiles/meta_RAW.csv")
 
-meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
+#meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
 hcoc = read.csv(HCOC)
 master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
