@@ -139,9 +139,9 @@ RAW_DATA2 = merge(RAW_DATA,meta_RAW_distinct,by = "Mass", all.y = T)
 # now merge this with soil_key
 SOIL_KEY = read.csv("data/soil_key.csv")
 
-RAW_DATA_LONG = merge(SOIL_KEY,RAW_DATA2, by = "code")
+raw_data_long = merge(SOIL_KEY,RAW_DATA2, by = "code")
 
-write.csv(RAW_DATA_LONG,FTICR_RAWMASTER_LONG)
+write.csv(raw_data_long,FTICR_RAWMASTER_LONG)
 
 
 
@@ -158,4 +158,67 @@ write.csv(RAW_DATA_LONG,FTICR_RAWMASTER_LONG)
 #
 
 ## PROCESSING DATA FILES ----
+# summarize by treatment and forest type
+raw_data_long %>%
+  group_by(Forest, Treatment, Mass) %>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% # calculate avg. intensity
+  ungroup %>% 
+  spread(Treatment,intensity)-> # then spread to create multiple columns
+  data_processed
+
+## create a new file for Fenton ----
+
+# select only the relevant columns. don't include the Goethite columns
+data_processed %>% 
+  select(Mass,Forest, PreFenton, PostFenton) ->
+  data_fenton
+
+# determine molecules lost and gained 
+
+data_fenton %>% 
+# create a conditional column for molecules that were lost, gained, or conserved
+  mutate(loss = case_when(PreFenton >0 & PostFenton == 0 ~ "lost",
+                          PreFenton == 0 & PostFenton > 0 ~ "gained",
+                          PreFenton > 0 & PostFenton > 0 ~ "conserved"),
+         loss = factor(loss, levels = "lost","gained","conserved")) -> # order these levels
+  data_fenton
+
+### OUTPUT
+write_csv(data_fenton, FTICR_FENTON, na = "")
+
+#
+
+## create a new file for goethite ----
+
+
+
+
+# split the MASTER file into two files, for pre-Goethite vs. post-Goethite. gather and add columns indicating whether pre or post F. and then combine. 
+fticr_data_2 %>% 
+  select(Mass, Forest, PreFenton,PostFenton)->
+  fticr_data_preg
+
+fticr_data_2 %>% 
+  select(Mass, Forest, PreFentonGoethite,PostFentonGoethite)->
+  fticr_data_postg
+
+fticr_data_preg %>% 
+  gather(Fenton, PreGoethite, PreFenton:PostFenton)->
+  fticr_data_preg2
+
+fticr_data_postg %>% 
+  dplyr::rename(PreFenton = PreFentonGoethite) %>% 
+  dplyr::rename(PostFenton = PostFentonGoethite) %>% 
+  gather(Fenton, PostGoethite, PreFenton:PostFenton)->
+  fticr_data_postg2
+
+#fticr_data_goethite2 = cbind(fticr_data_preg2,fticr_data_postg2)
+fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
+# `cbind` keeps duplicate columns, `merge` deletes duplicate columns
+
+### OUTPUT
+write.csv(fticr_data_goethite,FTICR_GOETHITE,na="")
+#
+# ---------------------------------------------------------------------------- ---- 
+
 
