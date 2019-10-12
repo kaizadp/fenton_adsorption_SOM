@@ -6,31 +6,32 @@ source("0-packages.R")
 # we do not have separate files for smaple data vs. meta data, so first we need to create the separate files
 
 
-## INPUT FILES -- META ----
+## INPUT FILES ----
+HW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonHWAdsorp-Master.csv") 
+HW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFenHWAdsorp-Master.csv") #needs cleaning
+SW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonSWAdsorp.csv") #ok
+SW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFentonSWAdsorp.csv")
+
+## INPUT -- META ----
+
 # because different files have potentially different sets of peaks, we want to import all four files, get the relevant columns, combine, and then remove duplicates.
 # this will ensure we have captured all the necessary peaks for the meta-data file
 # tiring, yes
 
-
-meta_HW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonHWAdsorp-Master.csv") 
-meta_HW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFenHWAdsorp-Master.csv") #needs cleaning
-meta_SW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonSWAdsorp.csv") #ok
-meta_SW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFentonSWAdsorp.csv")
-
 # remove the sample data columns. these are coded as xxx.csv
-meta_HW_PREFENTONGOETHITE %>% 
+HW_PREFENTONGOETHITE %>% 
   dplyr::select(-ends_with(".csv")) -> 
   meta_HW_PREFENTONGOETHITE
   
-meta_HW_POSTFENTONGOETHITE %>% 
+HW_POSTFENTONGOETHITE %>% 
   select(-ends_with(".csv"))->
   meta_HW_POSTFENTONGOETHITE
 
-meta_SW_PREFENTONGOETHITE %>% 
+SW_PREFENTONGOETHITE %>% 
   select(-ends_with(".csv"))->
   meta_SW_PREFENTONGOETHITE
 
-meta_SW_POSTFENTONGOETHITE %>% 
+SW_POSTFENTONGOETHITE %>% 
   select(-ends_with(".csv")) -> 
   meta_SW_POSTFENTONGOETHITE
 
@@ -80,7 +81,7 @@ meta_RAW %>%
 meta_RAW %>%
   select(C,H,N,O,S,P,
          mass,`H.C`,`O.C`,
-         `m.z`,DBE, CRAM, `AI.mod`,
+         DBE, CRAM, `AI.mod`,
          Class,
          KM, NKM, KMD) %>% 
   dplyr::rename(
@@ -88,7 +89,9 @@ meta_RAW %>%
                 OC = `O.C`,
                 Mass = mass,
                 AI_mod = `AI.mod`) %>% 
-  mutate(Mass = round(Mass,4))%>% # round Mass to 4 decimal places. do this for all files so it is easy to merge later 
+  mutate(Mass = round(Mass,4), # round Mass to 4 decimal places. do this for all files so it is easy to merge later 
+         HC = round(HC,2),
+         OC = round(OC,2))%>% 
   distinct()-> # this removes duplicates
   meta_RAW_distinct
 
@@ -97,126 +100,62 @@ write.csv(meta_RAW_distinct,"stomfiles/meta_RAW.csv")
 
 
 #
-## INPUT FILES -- DATA ----
+## INPUT -- DATA ----
 # these contain peaks seen in all 3 replicates. data have been pre-filtered.
 
-
-HW_FENTON = read_xlsx("stomfiles/FentonHWEffects.xlsx", sheet = "merged") #ok
-SW_FENTON = read_xlsx("stomfiles/FentonSWEffects.xlsx", sheet = "merged") #ok
-
-HW_PREFENTONGOETHITE = read_xlsx("stomfiles/PreFentonHWAdsorp-Master.xlsx", sheet = "merged") #ok
-HW_POSTFENTONGOETHITE = read_xlsx("stomfiles/PostFenHWAdsorp-Master.xlsx", sheet = "RAW") #needs cleaning
-
-SW_PREFENTONGOETHITE = read_xlsx("stomfiles/PreFentonSWAdsorp.xlsx", sheet = "merged") #ok
-SW_POSTFENTONGOETHITE = read_xlsx("stomfiles/PostFentonSWAdsorp.xlsx", sheet = "merged")
-
-# `HW_POSTFENTONGOETHITE` has extra crap at the end, so remove by subsetting
-HW_POSTFENTONGOETHITE = HW_POSTFENTONGOETHITE[1:2231,]
-
 ## select specific columns within each file and then merge all
-HW_FENTON %>% 
-  select(mass, ends_with(".csv"))->
-  HW_FENTON2
-  
-SW_FENTON %>% 
-  select(mass, ends_with(".csv"))->
-  SW_FENTON2
-
 HW_PREFENTONGOETHITE %>% 
   select(mass, ends_with(".csv"))->
-  HW_PREFENTONGOETHITE2
-
+  data_HW_PREFENTONGOETHITE
 
 HW_POSTFENTONGOETHITE %>% 
   select(mass, ends_with(".csv"))->
-  HW_POSTFENTONGOETHITE2
-
+  data_HW_POSTFENTONGOETHITE
 
 SW_PREFENTONGOETHITE %>% 
   select(mass, ends_with(".csv"))->
-  SW_PREFENTONGOETHITE2
-
+  data_SW_PREFENTONGOETHITE
 
 SW_POSTFENTONGOETHITE %>% 
   select(mass, ends_with(".csv"))->
-  SW_POSTFENTONGOETHITE2
+  data_SW_POSTFENTONGOETHITE
 
-
-RAW_MERGED = merge(HW_PREFENTONGOETHITE2, HW_POSTFENTONGOETHITE2, by = "mass", all.x = T, all.y = T)
-RAW_MERGED = merge(RAW_MERGED, SW_PREFENTONGOETHITE2, by = "mass", all.x = T, all.y = T)
-RAW_MERGED = merge(RAW_MERGED, SW_POSTFENTONGOETHITE2, by = "mass", all.x = T, all.y = T)
-
+RAW_MERGED = merge(data_HW_PREFENTONGOETHITE, data_HW_POSTFENTONGOETHITE, by = "mass", all.x = T, all.y = T)
+RAW_MERGED = merge(RAW_MERGED, data_SW_PREFENTONGOETHITE, by = "mass", all.x = T, all.y = T)
+RAW_MERGED = merge(RAW_MERGED, data_SW_POSTFENTONGOETHITE, by = "mass", all.x = T, all.y = T)
 
 RAW_MERGED %>% 
   dplyr::rename(Mass = mass) %>% 
   mutate(Mass = round(Mass,4)) %>% # round the mass to four decimals
-  
-  dplyr::rename (
-    Soil_1 = PreHW1.csv,
-    Soil_2 = PreHW2.csv,
-    Soil_3 = PreHW3.csv,
-    Soil_4 = PreSW4.csv,
-    Soil_5 = PreSW5.csv,
-    Soil_6 = PreSW6.csv,
-    Soil_7 = PosFHW1.csv,
-    Soil_8 = PosFHW2.csv,
-    Soil_9 = PosFHW3.csv,
-    Soil_10 = PosSW10.csv,
-    Soil_11 = PosSW11.csv,
-    Soil_12 = PosSW12.csv,
-    Soil_13 = PreHWGt13.csv,
-    Soil_14 = PreHWGt14.csv,
-    Soil_15 = PreHWGt15.csv,
-    Soil_16 = PreSWGt16.csv,
-    Soil_17 = PreSWGt17.csv,
-    Soil_18 = PreSWGt18.csv,
-    Soil_19 = `PosFHW-Gt1.csv`,
-    Soil_20 = `PosFHW-Gt2.csv`,
-    Soil_21 = `PosFHW-Gt3.csv`,
-    Soil_22 = PosSW22.csv,
-    Soil_23 = PosSW23.csv,
-    Soil_24 = PosSW24.csv) %>% 
-  na_if(.,"NA") %>% 
-  na_if(.,0)  ->
+  gather(code, intensity, ends_with(".csv")) %>% # each sample is a different column, combine/gather them
+  na_if(.,"NA") %>% # replace "NA" lettering and 0 with NA
+  na_if(.,0) %>% 
+  na.omit()-> # remove all rows with NA values
   RAW_DATA
 
-RAW_DATA2 = merge(meta_RAW_distinct,RAW_DATA,by = "Mass", all.y = T)
+# merge this with the meta file
+RAW_DATA2 = merge(RAW_DATA,meta_RAW_distinct,by = "Mass", all.y = T)
 
-RAW_DATA2 %>% 
-  gather(soil, intensity, starts_with("Soil_")) %>% 
-  na.omit()->
-  RAW_DATA_LONG
+# now merge this with soil_key
+SOIL_KEY = read.csv("data/soil_key.csv")
 
-RAW_DATA_LONG = merge(RAW_DATA_LONG, soil_key, by = "soil")
-
-    # RAW_DATA_LONG %>% 
-    #   na_if(.,"----") %>% 
-    #   mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"CondAr",
-    #          is.na(PolyCyArom)&(Aromatic=="Aromatic")&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"Aromatic",
-    #          is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"HighUnsatLign",
-    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnSatAliph_noN=="AlipatNoN")&is.na(SatFatAcCarb)~"UnSatAliph_noN",
-    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&(SatFatAcCarb=="SatFACarb")~"SatFatAcCarb",
-    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
-    #   RAW_DATA_LONG
-  
-RAW_DATA_LONG %>% 
-  select(-PolyCyArom,-Aromatic,-HighUnsatLign,-UnSatAliph_noN,-SatFatAcCarb,-UnSatAlip.N)->
-  RAW_DATA_LONG
-
+RAW_DATA_LONG = merge(SOIL_KEY,RAW_DATA2, by = "code")
 
 write.csv(RAW_DATA_LONG,FTICR_RAWMASTER_LONG)
 
 
 
-## compare meta files from raw vs. master formularity ----
+## compare meta files from raw vs. master formularity NOT DOING THIS NOW
+    # meta_processed = read.csv(FTICR_META)
+    # 
+    # meta_processed2 = meta_processed %>% 
+    #   select(Mass, El_comp, Class, HC, OC)
+    # meta_RAW_distinct2 = meta_RAW_distinct %>% 
+    #   select(Mass, HC, OC, Class)
+    # 
+    # meta_combined = merge(meta_processed2, meta_RAW_distinct2, by = "Mass")
 
-meta_processed = read.csv(FTICR_META)
+#
 
-meta_processed2 = meta_processed %>% 
-  select(Mass, El_comp, Class, HC, OC)
-meta_RAW_distinct2 = meta_RAW_distinct %>% 
-  select(Mass, HC, OC, Class)
-
-meta_combined = merge(meta_processed2, meta_RAW_distinct2, by = "Mass")
-
+## PROCESSING DATA FILES ----
 
