@@ -14,9 +14,32 @@ source("0-packages.R")
 
 meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
 hcoc = read.csv(HCOC)
+master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
 goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
+
+# ---------------------------------------------------------------------------- ----
+
+rawmaster %>% 
+  filter(Treatment=="PreFenton") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass, Forest) %>% 
+  dplyr::summarise(intensity = mean(intensity))  %>% 
+  spread(Forest, intensity)->
+  raw
+write.csv(raw, "raw.csv",na="")
+
+master %>% 
+  filter(treatment=="PreFenton") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass, Forest) %>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% 
+  spread(Forest, intensity)->
+  processed
+write.csv(processed, "master.csv", na="")
+# ---------------------------------------------------------------------------- ----
+
 
 # 1. relative intensity of each formula. and percentile ----
 # this portion of the script will assign the molecules into quartiles based on relative abundance.
@@ -124,11 +147,60 @@ write.csv(raw_groups_hsd,RELATIVE_ABUND)
 
 
 
+#
+# ---------------------------------------------------------------------------- ----
+
 # 2. PEAK COUNTS ----
+## 2.1 INITIAL PEAK COUNTS ----
+# we want to determine the total peaks in HW vs. SW
+# as well as the number of peaks in each group type
+
+# rawmaster
+
+rawmaster %>% 
+  filter(Treatment=="PreFenton") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass, Forest) %>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% 
+  ungroup %>% 
+  group_by(Forest) %>% 
+  dplyr::summarize(peaks = n())->
+  counts
+  
+master %>% 
+  filter(treatment=="PreFenton") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass, Forest) %>% 
+  dplyr::summarise(intensity = mean(intensity)) 
+%>% 
+  ungroup %>% 
+  group_by(Forest) %>% 
+  dplyr::summarize(peaks = n())->
+  counts_m
+## HARDWOOD AND SOFTWOOD HAD THE SAME NUMBER OF PEAKS IN THE NATIVE SOM
 
 
-
-
+## 2.2 FENTON PEAK COUNTS  ----
+# to determine peak counts in pre- vs. post-Fenton extracts
+rawmaster %>% 
+  filter(Goethite=="PreGoethite") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass,Fenton,Class) %>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% 
+  ungroup %>% 
+  group_by(Fenton,Class) %>% 
+  dplyr::summarize(peaks = n())->
+  fenton_counts
+  
+## 2.3 GOETHITE PEAK COUNTS  ----
+rawmaster %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass,Goethite,Fenton,Class) %>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% 
+  ungroup %>% 
+  group_by(Fenton,Goethite,Class) %>% 
+  dplyr::summarize(peaks = n())->
+  goethite_counts
 
 
 ### 2.1.1 fenton relative abundance lost vs. gained ----
