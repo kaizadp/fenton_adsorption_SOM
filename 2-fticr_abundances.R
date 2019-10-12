@@ -334,10 +334,6 @@ data_goethite_adsorbed %>%
 ggplot(data_goethite_adsorbed_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
   geom_bar(stat = "identity", position = position_dodge())+
   facet_grid(fenton~Forest)
-
-
-
-
 ## use this in the graph for relative distribution
 
 
