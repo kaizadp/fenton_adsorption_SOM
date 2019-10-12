@@ -190,34 +190,40 @@ write_csv(data_fenton, FTICR_FENTON, na = "")
 
 ## create a new file for goethite ----
 
+# we don't need to make a new file for goethite
+# because raw_data_long has all the information we need
 
+# we need to create columns for adsorbed vs. unbound. 
+# we will do that in the `abundance` script, because we need to calculate relative abundances for that
 
+### the code below was from the old script. not sure why I did this roundabout crap
 
-# split the MASTER file into two files, for pre-Goethite vs. post-Goethite. gather and add columns indicating whether pre or post F. and then combine. 
-fticr_data_2 %>% 
-  select(Mass, Forest, PreFenton,PostFenton)->
-  fticr_data_preg
+  # # split the MASTER file into two files, for pre-Goethite vs. post-Goethite. gather and add columns indicating whether pre or post F. and then combine. 
+  # fticr_data_2 %>% 
+  #   select(Mass, Forest, PreFenton,PostFenton)->
+  #   fticr_data_preg
+  # 
+  # fticr_data_2 %>% 
+  #   select(Mass, Forest, PreFentonGoethite,PostFentonGoethite)->
+  #   fticr_data_postg
+  # 
+  # fticr_data_preg %>% 
+  #   gather(Fenton, PreGoethite, PreFenton:PostFenton)->
+  #   fticr_data_preg2
+  # 
+  # fticr_data_postg %>% 
+  #   dplyr::rename(PreFenton = PreFentonGoethite) %>% 
+  #   dplyr::rename(PostFenton = PostFentonGoethite) %>% 
+  #   gather(Fenton, PostGoethite, PreFenton:PostFenton)->
+  #   fticr_data_postg2
+  # 
+  # #fticr_data_goethite2 = cbind(fticr_data_preg2,fticr_data_postg2)
+  # fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
+  # # `cbind` keeps duplicate columns, `merge` deletes duplicate columns
+  # 
+  # ### OUTPUT
+  # write.csv(fticr_data_goethite,FTICR_GOETHITE,na="")
 
-fticr_data_2 %>% 
-  select(Mass, Forest, PreFentonGoethite,PostFentonGoethite)->
-  fticr_data_postg
-
-fticr_data_preg %>% 
-  gather(Fenton, PreGoethite, PreFenton:PostFenton)->
-  fticr_data_preg2
-
-fticr_data_postg %>% 
-  dplyr::rename(PreFenton = PreFentonGoethite) %>% 
-  dplyr::rename(PostFenton = PostFentonGoethite) %>% 
-  gather(Fenton, PostGoethite, PreFenton:PostFenton)->
-  fticr_data_postg2
-
-#fticr_data_goethite2 = cbind(fticr_data_preg2,fticr_data_postg2)
-fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
-# `cbind` keeps duplicate columns, `merge` deletes duplicate columns
-
-### OUTPUT
-write.csv(fticr_data_goethite,FTICR_GOETHITE,na="")
 #
 # ---------------------------------------------------------------------------- ---- 
 
