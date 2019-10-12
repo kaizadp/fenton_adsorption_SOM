@@ -169,7 +169,7 @@ rawmaster %>%
 
 # create a longform version
 data_processed %>% 
-  gather(Treatment, intensity,3:6)->
+  gather(treatment, intensity,3:6)->
   data_processed_long
 
 ### OUTPUT
