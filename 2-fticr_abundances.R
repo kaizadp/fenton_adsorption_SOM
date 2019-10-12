@@ -5,19 +5,151 @@
 
 
 # DO NOT SOURCE SCRIPT #1.
-# Run Script #1 separately, then start a new session and run this script.
+# Run Script #1 separately, then start a new session (ctrl+shift+F10) and run this script.
 
 source("0-packages.R")
 
 
 # INPUT FILES
 
+meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
+hcoc = read.csv(HCOC)
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
 goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
 
+# 1. relative intensity of each formula. and percentile ----
+# this portion of the script will assign the molecules into quartiles based on relative abundance.
+# this classification will be used in Van Krevelen diagrams
 
-# ---------------------------------------------------------------------------- ---- 
+# `rawmaster` is the longform master file. calculate relative abundance of each molecule
+
+rawmaster %>% 
+  mutate(intensity = as.numeric(intensity)) %>% # set intensity as a numeric variable
+  filter(Goethite == "PreGoethite") %>% # keep only pre-Goethite data. we don't want post-adsorption data
+  dplyr::group_by(Forest, Treatment) %>% 
+  dplyr::mutate(total = sum(intensity)) %>% # add a new column calculating total intensity
+  dplyr::mutate(rel_abund = (intensity/total)*100)-> # calculate relative intensity as a %
+  relative_intensity
+
+# then create a column for quartiles
+relative_intensity %>% 
+  dplyr::group_by(Forest, Treatment) %>% 
+  dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
+  mutate(perc = cut(percentile, 
+                    breaks = c(-Inf,25, 50, 75, Inf),
+                    labels = c("lowest 25%", "third 25 %", "second 25 %", "top 25 %")))->
+  relative_intensity_percentile
+
+# remove unnecessary columns
+relative_intensity_percentile %>% 
+  select(-intensity,-Treatment, -Goethite, -total, -rel_abund, -percentile)->
+  relative_intensity_percentile
+  
+# merge with the hcoc file
+relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x = T)
+
+### OUTPUT
+write_csv(relative_intensity_percentile, PERCENTILE)
+# this file will be used for the Van Krevelen plots (preFenton and postFenton)
+
+#
+# ---------------------------------------------------------------------------- ----
+
+# 2. RELATIVE ABUNDANCE FOR PRE- AND POST-FENTON GROUPS ----
+# `rawmaster` is the longform master file. 
+
+# summarizing by groups
+rawmaster %>% 
+  mutate(intensity = as.numeric(intensity)) %>% # set intensity as a numeric variable
+  filter(Goethite == "PreGoethite") %>% # keep only pre-Goethite data. we don't want post-adsorption data
+  group_by(Forest,Fenton,soil,Class) %>% 
+  dplyr::summarize(compounds = sum(as.numeric(intensity), na.rm = TRUE)) %>% # this gives total intensity for each group
+# in the same command, we will also create a column for total intensity
+  ungroup() %>% # remove the previous grouping
+  group_by(soil) %>% # create a new grouping 
+  dplyr::mutate(total = sum(compounds)) %>%  # add a column for total intensity
+# we can also calculate the relative abundance in the same command
+  mutate(relabund = (compounds/total)*100) %>% # calculate relative abundance as a %
+  mutate(relabund = round(relabund,2))-> # round to two decimal places
+  raw_coregroups
+
+# ^^^ this file has relative abundance of each group for each core
+# now we need to summarize this for each treatment. combine all cores
+
+raw_coregroups %>% 
+  group_by(Forest, Fenton, Class) %>% 
+  dplyr::summarise(rel_abund = mean(relabund), 
+                   se = sd(relabund)/sqrt(n())) %>% 
+  dplyr::mutate(rel_abund = round(rel_abund,2),
+                se = round(se,2),
+                relativeabund = paste(rel_abund,"\u00B1",se))->
+  raw_groups
+
+
+
+
+# go from longform to wide form to help with calculations
+raw_groups %>% 
+  spread(Class, compounds)->
+  raw_groups_wide
+
+raw_groups_wide = spread(raw_groups,Class,compounds)
+
+# create a `total` column adding counts across all "group" columns (columns 4-10)
+raw_groups_wide %>%
+  mutate(total = rowSums(.[4:10], na.rm = TRUE)) ->
+  raw_groups_wide
+
+## relative abundance:
+# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
+fticr_data_soil_groups_wide[,-c(1:5)] %>% 
+  sapply('/', (fticr_data_soil_groups_wide$total)/100)->
+  fticr_data_abundance
+
+fticr_data_abundance = data.frame(fticr_data_abundance)
+soilnames = data.frame(fticr_data_soil_groups_wide[,c(1:5)])
+
+fticr_data_relabundance = cbind(soilnames,fticr_data_abundance)
+
+### OUTPUT
+# write_csv(fticr_data_relabundance,path = "fticr/fticr_pore_relabund_soils.csv")
+
+## relative abundance by treatment/site
+# convert to long form and then do summary
+fticr_data_relabundance_long = fticr_data_relabundance %>% 
+  gather(Class, relabund, AminoSugar:total)
+
+
+fticr_relabundance_summary = summarySE(fticr_data_relabundance_long, measurevar = "relabund", 
+                                       groupvars = c("Forest","Treatment","Fenton","Goethite","Class"),na.rm = TRUE)
+fticr_relabundance_summary$relativeabundance = paste((round(fticr_relabundance_summary$relabund,2)),
+                                                     "\u00B1",
+                                                     round(fticr_relabundance_summary$se,2))
+
+# create a summary table of relative abundances for each treatment
+fticr_relabundance_summarytable = dcast(fticr_relabundance_summary,
+                                        Goethite+Class~Forest+Fenton,value.var = "relativeabundance") 
+
+# subset only the preGoethite data (i.e. initial and postFenton)
+fticr_relabundance_summarytable_fenton = fticr_relabundance_summarytable[fticr_relabundance_summarytable$Goethite=="PreGoethite",]
+## ^^^ this is the file we want
+
+### OUTPUT
+write.csv(fticr_relabundance_summarytable_fenton,"output/table1_fticr_relabundance_groups.csv")
+# write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
+
+
+
+
+
+
+# 2. PEAK COUNTS ----
+
+
+
+
+
 
 ### 2.1.1 fenton relative abundance lost vs. gained ----
 # subset the fenton2 to get just the lost/gained column
@@ -106,33 +238,6 @@ fticr_goethite_relabundance_summarytable = dcast(fticr_goethite_relabundance_sum
 #
 # ---------------------------------------------------------------------------- ---- 
 
-# 3 relative abundance of each formula ----
-# this portion of the script will assign the molecules into quartiles based on relative abundance.
-# this classification will be used in Van Krevelen diagrams
-
-# fticr_data_3 is the longform master file. calculate relative abundance of each molecule
-
-fticr_data_3 %>% 
-  dplyr::group_by(Forest, treatment) %>% 
-  dplyr::mutate(total = sum(intensity)) %>% 
-  mutate(rel_abund = (intensity/total)*100)->
-  fticr_relabund_molecules
-
-# then create a column for quartiles
-fticr_relabund_molecules %>% 
-  dplyr::group_by(Forest, treatment) %>% 
-  dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
-  mutate(perc = cut(percentile, 
-                    breaks = c(-Inf,25, 50, 75, Inf),
-                    labels = c("lowest 25%", "third 25 %", "second 25 %", "top 25 %")))->
-  fticr_relabund_molecules
-
-# merge with the hcoc file
-fticr_relabund_molecules_hcoc = merge(fticr_relabund_molecules,fticr_meta_hcoc, by = "Mass", all.x = T)
-
-### OUTPUT
-write_csv(fticr_relabund_molecules_hcoc, path = "fticr/fticr_molecules_percentile_hcoc.csv")
-# this file will be used for the Van Krevelen plots (preFenton and postFenton)
 
 #
 
@@ -142,61 +247,6 @@ write_csv(fticr_relabund_molecules_hcoc, path = "fticr/fticr_molecules_percentil
 
 # 4 summary of groups ----
 
-## 4.1 overall summary of groups by treatment ---- 
-# use the longform version of the master raw file, fticr_data_raw_long
-
-# summarizing by groups
-fticr_data_raw_long %>% 
-  group_by(Forest,Treatment,Fenton, Goethite,soil,Class) %>% 
-  dplyr::summarize(compounds = sum(as.numeric(intensity), na.rm = TRUE)) ->
-  fticr_data_soil_groups
-
-# go from longform to wide form to help with calculations
-fticr_data_soil_groups_wide = spread(fticr_data_soil_groups,Class,compounds)
-fticr_data_soil_groups_wide = as.data.frame(fticr_data_soil_groups_wide)
-
-# create a `total` column adding counts across all "group" columns (columns 4-10)
-fticr_data_soil_groups_wide %>%
-  mutate(total = rowSums(.[6:12], na.rm = TRUE)) ->
-  fticr_data_soil_groups_wide
-
-## relative abundance:
-# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
-fticr_data_soil_groups_wide[,-c(1:5)] %>% 
-  sapply('/', (fticr_data_soil_groups_wide$total)/100)->
-  fticr_data_abundance
-
-fticr_data_abundance = data.frame(fticr_data_abundance)
-soilnames = data.frame(fticr_data_soil_groups_wide[,c(1:5)])
-
-fticr_data_relabundance = cbind(soilnames,fticr_data_abundance)
-
-### OUTPUT
-# write_csv(fticr_data_relabundance,path = "fticr/fticr_pore_relabund_soils.csv")
-
-## relative abundance by treatment/site
-# convert to long form and then do summary
-fticr_data_relabundance_long = fticr_data_relabundance %>% 
-  gather(Class, relabund, AminoSugar:total)
-
-
-fticr_relabundance_summary = summarySE(fticr_data_relabundance_long, measurevar = "relabund", 
-                                       groupvars = c("Forest","Treatment","Fenton","Goethite","Class"),na.rm = TRUE)
-fticr_relabundance_summary$relativeabundance = paste((round(fticr_relabundance_summary$relabund,2)),
-                                                          "\u00B1",
-                                                          round(fticr_relabundance_summary$se,2))
-
-# create a summary table of relative abundances for each treatment
-fticr_relabundance_summarytable = dcast(fticr_relabundance_summary,
-                                                    Goethite+Class~Forest+Fenton,value.var = "relativeabundance") 
-
-# subset only the preGoethite data (i.e. initial and postFenton)
-fticr_relabundance_summarytable_fenton = fticr_relabundance_summarytable[fticr_relabundance_summarytable$Goethite=="PreGoethite",]
-## ^^^ this is the file we want
-
-### OUTPUT
-write.csv(fticr_relabundance_summarytable_fenton,"output/table1_fticr_relabundance_groups.csv")
-# write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
 
 
 #

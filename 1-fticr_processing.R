@@ -27,7 +27,9 @@ fticr_meta %>%
 fticr_meta %>% 
   mutate(NOSC = 4 - (((4*C) + H - (3*N) - (2*O) - (2*S))/C)) %>% 
   dplyr::rename(HC = H.C) %>% 
-  dplyr:: rename(OC = O.C)->
+  dplyr:: rename(OC = O.C) %>% 
+  mutate(OC = round(HC,2),
+         HC = round(OC,2))->
   fticr_meta
 
 # create a smaller meta file for only HC OC
@@ -59,7 +61,7 @@ fticr_meta %>%
 ### OUTPUT
 # SAVE META FILES
 write_csv(fticr_meta, FTICR_META)
-write_csv(fticr_meta_hcoc, path = "fticr/fticr_meta_hcoc.csv")
+write_csv(fticr_meta_hcoc, HCOC)
 write_csv(fticr_meta_subset, path = "fticr/fticr_meta_subset.csv")
 write_csv(fticr_meta_elements, path = "fticr/fticr_meta_elements.csv")
 
