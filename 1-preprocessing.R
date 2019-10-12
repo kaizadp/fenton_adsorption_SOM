@@ -2,13 +2,22 @@
 
 source("0-packages.R")
 
+### all input files are in `stomfiles` folder
+# we do not have separate files for smaple data vs. meta data, so first we need to create the separate files
+
+
 ## INPUT FILES -- META ----
+# because different files have potentially different sets of peaks, we want to import all four files, get the relevant columns, combine, and then remove duplicates.
+# this will ensure we have captured all the necessary peaks for the meta-data file
+# tiring, yes
+
 
 meta_HW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonHWAdsorp-Master.csv") 
 meta_HW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFenHWAdsorp-Master.csv") #needs cleaning
 meta_SW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonSWAdsorp.csv") #ok
 meta_SW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFentonSWAdsorp.csv")
 
+# remove the sample data columns. these are coded as xxx.csv
 meta_HW_PREFENTONGOETHITE %>% 
   dplyr::select(-ends_with(".csv")) -> 
   meta_HW_PREFENTONGOETHITE
@@ -25,15 +34,35 @@ meta_SW_POSTFENTONGOETHITE %>%
   select(-ends_with(".csv")) -> 
   meta_SW_POSTFENTONGOETHITE
 
+# set all column names to be consistent across all
+# manually checked before doing so -- the relevant columns have the same names and are in the same positions.
+# only the irrelevant columns (AvgInitial vs. InitialAvg) are mislabelled, so it is ok
+
 names(meta_HW_POSTFENTONGOETHITE) = names(meta_HW_PREFENTONGOETHITE)
 names(meta_SW_POSTFENTONGOETHITE) = names(meta_HW_PREFENTONGOETHITE)
 names(meta_SW_PREFENTONGOETHITE) = names(meta_HW_PREFENTONGOETHITE)
 
+# confirm that the column names are identical across all sheets
 identical(names(meta_HW_PREFENTONGOETHITE),names(meta_HW_POSTFENTONGOETHITE))
 identical(names(meta_HW_POSTFENTONGOETHITE),names(meta_SW_PREFENTONGOETHITE))
 identical(names(meta_SW_PREFENTONGOETHITE),names(meta_SW_POSTFENTONGOETHITE))
 
+# combine all four files using rbind, which stacks the sheets one below the other
+# we need to ensure all sheets have the same column names, hence the exercise above
 meta_RAW = rbind(meta_HW_PREFENTONGOETHITE,meta_HW_POSTFENTONGOETHITE, meta_SW_PREFENTONGOETHITE,meta_SW_POSTFENTONGOETHITE)
+
+# this is f-ed up
+# there isn't a single column with Class groupings, but one column for each grouping
+# NA is coded as ---- here,
+# so we need to code it back to NA and then create a single column that has all the Class assignments
+
+# there are six Class assignments
+  # 1. CondAr
+  # 2. Aromatic
+  # 3. HighUnsatLignin
+  # 4. Aliph_noN
+  # 5. SatFACarb
+  # 6. Aliph_N
 
 meta_RAW %>% 
   na_if(.,"----") %>% 
@@ -45,7 +74,9 @@ meta_RAW %>%
                            is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
   meta_RAW
 
-names(meta_RAW)
+# now select only the relevant columns
+# rename the columns as needed
+# remove duplicates
 meta_RAW %>%
   select(C,H,N,O,S,P,
          mass,`H.C`,`O.C`,
@@ -55,13 +86,16 @@ meta_RAW %>%
   dplyr::rename(
                 HC = `H.C`,
                 OC = `O.C`,
-                Mass = mass) %>% 
-  mutate(Mass = round(Mass,4))%>% 
-  distinct()->
+                Mass = mass,
+                AI_mod = `AI.mod`) %>% 
+  mutate(Mass = round(Mass,4))%>% # round Mass to 4 decimal places. do this for all files so it is easy to merge later 
+  distinct()-> # this removes duplicates
   meta_RAW_distinct
 
-
+### OUTPUT
 write.csv(meta_RAW_distinct,"stomfiles/meta_RAW.csv")
+
+
 #
 ## INPUT FILES -- DATA ----
 # these contain peaks seen in all 3 replicates. data have been pre-filtered.
