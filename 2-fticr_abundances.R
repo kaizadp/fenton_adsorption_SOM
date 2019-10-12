@@ -205,7 +205,9 @@ rawmaster %>%
   goethite_counts
 
 
-### 2.1.1 fenton relative abundance lost vs. gained ----
+#
+# ---------------------------------------------------------------------------- ----
+# FENTON relative abundance lost vs. gained ----
 # subset the fenton2 to get just the lost/gained column
 
 fticr_data_fenton %>% 
