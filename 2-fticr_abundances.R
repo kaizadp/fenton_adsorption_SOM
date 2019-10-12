@@ -220,7 +220,7 @@ ggplot(fenton_loss[!fenton_loss$loss=="conserved",], aes(x = OC,y = HC, color = 
   facet_wrap(~Forest)
 
 # ---------------------------------------------------------------------------- ----
-# GOETHITE relative abundance of adsorbed and non-adsorbed classes ----
+# GOETHITE adsorbed vs. non-adsorbed  ----
 ## .1 determining adsorbed vs. not adsorbed molecules ----
       ## NOT DOING THIS FOR NOW
       ##    # (binary classification) 
@@ -251,7 +251,7 @@ ggplot(fenton_loss[!fenton_loss$loss=="conserved",], aes(x = OC,y = HC, color = 
 
 # technique from Williams, Borch et al. 2018. Soil Systems
 # Calculate relative abundance of each formula in the PreG and PostG samples. 
-# Substract PostG-PreG to calculate delta-abundance.
+# Subtract PostG-PreG to calculate delta-abundance.
 # Use delta-abundance to group the molecules into seven classes:
 # < -0.00015 = most sorbed | -0.00010 = more sorbed | -0.00005 = sorbed | 0.00005 = minimal change | 0.00010 = unbound | 0.00015 = more unbound | > 0.00015 = most unbound,
 # ALL the calculations are done in one step.
@@ -288,6 +288,9 @@ ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
   facet_wrap(~fenton)+
   theme(legend.position = "top")
 
+#
+# ---------------------------------------------------------------------------- ----
+# GOETHITE relative abundance of sorbed vs. unsorbed groups
 
 # first, subset the goethite_relabund file ----
 
