@@ -45,3 +45,4 @@ FTICR_GOETHITE <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, inte
 # from SCRIPT 2
 PERCENTILE <- "fticr/fticr_raw_percentile.csv" # relative intensities and percentile classification for native and Fenton extracts
 RELATIVE_ABUND <- "fticr/fticr_relative_abundance.csv"
+GOETHITE_ADSORPTION <- "fticr/fticr_goethite_sorbed.csv"

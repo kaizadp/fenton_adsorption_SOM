@@ -12,6 +12,7 @@ HW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFenHWAdsorp-Master.csv") #needs 
 SW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonSWAdsorp.csv") #ok
 SW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFentonSWAdsorp.csv")
 
+SOIL_KEY = read.csv("data/soil_key.csv")
 ## INPUT -- META ----
 
 # because different files have potentially different sets of peaks, we want to import all four files, get the relevant columns, combine, and then remove duplicates.
@@ -137,8 +138,6 @@ RAW_MERGED %>%
 RAW_DATA2 = merge(RAW_DATA,meta_RAW_distinct,by = "Mass", all.y = T)
 
 # now merge this with soil_key
-SOIL_KEY = read.csv("data/soil_key.csv")
-
 raw_data_long = merge(SOIL_KEY,RAW_DATA2, by = "code")
 
 ### OUTPUT
@@ -160,21 +159,23 @@ write.csv(raw_data_long,FTICR_RAWMASTER_LONG)
 
 ## PROCESSING DATA FILES ----
 # summarize by treatment and forest type
-rawmaster %>%
-  group_by(Forest, Treatment, Mass) %>% 
-  dplyr::summarise(intensity = mean(intensity)) %>% # calculate avg. intensity
-  ungroup %>% 
+raw_data_long %>%
+  group_by(Forest, Treatment,Mass) %>% 
+  dplyr::summarise(intensity = mean(intensity)) -> # calculate avg. intensity
+  data_processed_long
+
+data_processed_long %>% 
   spread(Treatment,intensity)-> # then spread to create multiple columns
   data_processed
-
-# create a longform version
-data_processed %>% 
-  gather(treatment, intensity,3:6)->
-  data_processed_long
 
 ### OUTPUT
 write.csv(data_processed_long, FTICR_MASTER_LONG)
 
+data_processed_long %>% 
+  dplyr::group_by(Forest, Treatment) %>% 
+  dplyr::summarise(m = mean(intensity, na.rm = TRUE))
+
+#
 ## create a new file for Fenton ----
 
 # select only the relevant columns. don't include the Goethite columns
@@ -200,12 +201,21 @@ write_csv(data_fenton, FTICR_FENTON, na = "")
 ## create a new file for goethite ----
 data_processed_long %>% 
 # create columns for goethite and fenton
-  mutate(goethite = if_else(treatment=="PreFentonGoethite"|treatment=="PostFentonGoethite","PostGoethite","PreGoethite"),
-         fenton = if_else(treatment=="PreFenton"|treatment=="PreFentonGoethite","PreFenton","PostFenton")) %>% 
-  na.omit() %>% 
+  mutate(goethite = if_else((Treatment=="PreFentonGoethite"|Treatment=="PostFentonGoethite"),"PostGoethite","PreGoethite"),
+         fenton = if_else((Treatment=="PreFenton"|Treatment=="PreFentonGoethite"),"PreFenton","PostFenton")) %>% 
+  ungroup %>% 
+  select(-Treatment) %>% 
   spread(goethite, intensity)->
   data_goethite
   
+
+data_goethite %>% 
+  dplyr::group_by(Forest, fenton) %>% 
+  dplyr::summarise(preg = mean(PreGoethite, na.rm = TRUE),
+                   postg = mean(PostGoethite, na.rm = TRUE))
+
+
+
 # we don't need to make a new file for goethite
 # because raw_data_long has all the information we need
 

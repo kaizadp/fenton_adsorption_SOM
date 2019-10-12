@@ -17,9 +17,9 @@ PreHWGt15.csv,Soil_15,HW,PreFentonGoethite,PreFenton,PostGoethite
 PreSWGt16.csv,Soil_16,SW,PreFentonGoethite,PreFenton,PostGoethite
 PreSWGt17.csv,Soil_17,SW,PreFentonGoethite,PreFenton,PostGoethite
 PreSWGt18.csv,Soil_18,SW,PreFentonGoethite,PreFenton,PostGoethite
-PosFHW-Gt1.csv,Soil_19,HW,PostFentonGoethite,PostFenton,PostGoethite
-PosFHW-Gt2.csv,Soil_20,HW,PostFentonGoethite,PostFenton,PostGoethite
-PosFHW-Gt3.csv,Soil_21,HW,PostFentonGoethite,PostFenton,PostGoethite
+PosFHW.Gt1.csv,Soil_19,HW,PostFentonGoethite,PostFenton,PostGoethite
+PosFHW.Gt2.csv,Soil_20,HW,PostFentonGoethite,PostFenton,PostGoethite
+PosFHW.Gt3.csv,Soil_21,HW,PostFentonGoethite,PostFenton,PostGoethite
 PosSW22.csv,Soil_22,SW,PostFentonGoethite,PostFenton,PostGoethite
 PosSW23.csv,Soil_23,SW,PostFentonGoethite,PostFenton,PostGoethite
 PosSW24.csv,Soil_24,SW,PostFentonGoethite,PostFenton,PostGoethite

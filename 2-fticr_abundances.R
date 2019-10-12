@@ -52,16 +52,16 @@ write.csv(processed, "master.csv", na="")
 
 master %>% 
   mutate(intensity = as.numeric(intensity)) %>% # set intensity as a numeric variable
-  filter(treatment == c("PreFenton","PostFenton")) %>% # keep only pre-Goethite data. we don't want post-adsorption data
-  na.omit() %>% # remove all NA, or it won't calculate
-  dplyr::group_by(Forest, treatment) %>% 
+  filter(Treatment == "PreFenton"| Treatment=="PostFenton") %>% # keep only pre-Goethite data. we don't want post-adsorption data
+  na.omit %>% # remove all NA, or it won't calculate
+  dplyr::group_by(Forest, Treatment) %>% 
   dplyr::mutate(total = sum(intensity)) %>% # add a new column calculating total intensity
   dplyr::mutate(rel_abund = (intensity/total)*100)-> # calculate relative intensity as a %
   relative_intensity
 
 # then create a column for quartiles
 relative_intensity %>% 
-  dplyr::group_by(Forest, treatment) %>% 
+  dplyr::group_by(Forest, Treatment) %>% 
   dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
   mutate(perc = cut(percentile, 
                     breaks = c(-Inf,25, 50, 75, Inf),
@@ -80,7 +80,7 @@ relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "
 ggplot(relative_intensity_percentile, aes(x = OC,y = HC, color = perc))+
   geom_point(alpha = 0.5)+
   scale_color_brewer(palette = "Reds")+
-  facet_grid(Forest~treatment)
+  facet_grid(Forest~Treatment)
 
 ### OUTPUT
 write_csv(relative_intensity_percentile, PERCENTILE)
@@ -256,25 +256,37 @@ ggplot(fenton_loss[!fenton_loss$loss=="conserved",], aes(x = OC,y = HC, color = 
 # < -0.00015 = most sorbed | -0.00010 = more sorbed | -0.00005 = sorbed | 0.00005 = minimal change | 0.00010 = unbound | 0.00015 = more unbound | > 0.00015 = most unbound,
 # ALL the calculations are done in one step.
 
-fticr_data_goethite %>% 
-  mutate(Fenton = factor(Fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
-  dplyr::group_by(Forest,Fenton) %>% 
-  dplyr::mutate(preg_total = sum(PreGoethite)) %>% 
-  dplyr::mutate(postg_total = sum(PostGoethite)) %>% 
+data_goethite %>% 
+  mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
+  dplyr::group_by(Forest,fenton) %>% 
+# replace all NA with 0
+  replace(., is.na(.),0) %>% 
+# new columns for pre-goethite and post-goethite total intensities  
+  dplyr::mutate(preg_total = sum(PreGoethite, na.rm = TRUE),
+                postg_total = sum(PostGoethite, na.rm = TRUE)) %>% 
+# new columns for relative abundance as fraction
   mutate(preg_rel_abund = PreGoethite/preg_total) %>% 
   mutate(postg_rel_abund = PostGoethite/postg_total) %>%
+# subtract post-pre relative abundance
   mutate(delta_abund = postg_rel_abund - preg_rel_abund) %>% 
+# create a column for binning 
   mutate(sorption_frac = cut(delta_abund, 
                              breaks = c(-Inf,-0.00015, -0.00010, -0.00005, 0.00005,0.00010,0.00015,Inf),
-                             labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound")))->
-  fticr_data_goethite_relabund
+                             labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound"))) ->
+# cleaning up: remove unnecessary columnns  
+#  select(-(preg_total:delta_abund))->
+  data_goethite_relabund
 
-fticr_data_goethite_relabund = merge(fticr_data_goethite_relabund,fticr_meta_hcoc, by = "Mass", all.x = T)  
+data_goethite_relabund = merge(data_goethite_relabund,hcoc, by = "Mass", all.x = T)  
 
 ### OUTPUT
-write_csv(fticr_data_goethite_relabund, path = "fticr/fticr_data_goethite_relabund.csv")
+write_csv(data_goethite_relabund, GOETHITE_ADSORPTION)
 
-
+ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
+  geom_point(alpha = 0.2)+
+  scale_color_brewer(palette = "PuOr")+
+  facet_wrap(~fenton)+
+  theme(legend.position = "top")
 
 
 # first, subset the goethite_relabund file ----
