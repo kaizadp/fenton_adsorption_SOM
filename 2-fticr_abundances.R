@@ -212,11 +212,72 @@ rawmaster %>%
 # FENTON relative abundance lost vs. gained ----
 # merge `fenton` file with `relative_intensity_percentile`
 
-fenton_los = merge(fenton, relative_intensity_percentile, by = c("Mass", "Forest"))
+fenton_loss = merge(fenton, relative_intensity_percentile, by = c("Mass", "Forest"))
+
+ggplot(fenton_loss[!fenton_loss$loss=="conserved",], aes(x = OC,y = HC, color = loss))+
+  geom_point(alpha = 0.5)+
+  scale_color_brewer(palette = "Dark2")+
+  facet_wrap(~Forest)
+
+# ---------------------------------------------------------------------------- ----
+# GOETHITE relative abundance of adsorbed and non-adsorbed classes ----
+## .1 determining adsorbed vs. not adsorbed molecules ----
+      ## NOT DOING THIS FOR NOW
+      ##    # (binary classification) 
+      ##    # Using S/N method of Avneri-Katz 2017
+      ##    # find minimum intensity
+      ##    # divide all by minimum. if >2, SN = 10
+      ##    # but first, convert all zero to NA
+      ##    
+      ##    fticr_data_goethite[fticr_data_goethite==0]<-NA
+      ##    minimum = min(c(fticr_data_goethite$PreGoethite, fticr_data_goethite$PostGoethite), na.rm = TRUE)
+      ##    
+      ##    # then convert NA back to 0
+      ##    fticr_data_goethite[is.na(fticr_data_goethite)]<-0
+      ##    
+      ##    # create a column for adsorbed/not adsorbed
+      ##    setDT(fticr_data_goethite)[PreGoethite/minimum >2 & PostGoethite/minimum < 1, adsorbed := "adsorbed"]
+      ##    fticr_data_goethite[PreGoethite/minimum >2 & PostGoethite/minimum > 1, adsorbed := "not adsorbed"]
+      ##    
+      ##    # create a column for new molecules created post-adsorption
+      ##    setDT(fticr_data_goethite)[PreGoethite/minimum == 0 & PostGoethite/minimum > 1, new := "new molecules"]
+      ##    
+      ##    ### OUTPUT
+      ##    write_csv(fticr_data_goethite,path = "fticr/fticr_data_goethite.csv")
+      ## 
+#
+
+## .2 relative strength of sorption ----
+
+# technique from Williams, Borch et al. 2018. Soil Systems
+# Calculate relative abundance of each formula in the PreG and PostG samples. 
+# Substract PostG-PreG to calculate delta-abundance.
+# Use delta-abundance to group the molecules into seven classes:
+# < -0.00015 = most sorbed | -0.00010 = more sorbed | -0.00005 = sorbed | 0.00005 = minimal change | 0.00010 = unbound | 0.00015 = more unbound | > 0.00015 = most unbound,
+# ALL the calculations are done in one step.
+
+fticr_data_goethite %>% 
+  mutate(Fenton = factor(Fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
+  dplyr::group_by(Forest,Fenton) %>% 
+  dplyr::mutate(preg_total = sum(PreGoethite)) %>% 
+  dplyr::mutate(postg_total = sum(PostGoethite)) %>% 
+  mutate(preg_rel_abund = PreGoethite/preg_total) %>% 
+  mutate(postg_rel_abund = PostGoethite/postg_total) %>%
+  mutate(delta_abund = postg_rel_abund - preg_rel_abund) %>% 
+  mutate(sorption_frac = cut(delta_abund, 
+                             breaks = c(-Inf,-0.00015, -0.00010, -0.00005, 0.00005,0.00010,0.00015,Inf),
+                             labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound")))->
+  fticr_data_goethite_relabund
+
+fticr_data_goethite_relabund = merge(fticr_data_goethite_relabund,fticr_meta_hcoc, by = "Mass", all.x = T)  
+
+### OUTPUT
+write_csv(fticr_data_goethite_relabund, path = "fticr/fticr_data_goethite_relabund.csv")
 
 
-### 2.2.3. relative abundance of adsorbed and non-adsorbed classes ----
-# first, subset the goethite_relabund file
+
+
+# first, subset the goethite_relabund file ----
 
 fticr_data_goethite_relabund %>% 
   select(Mass, Forest, Fenton, PreGoethite, adsorbed, new, sorption_frac)->

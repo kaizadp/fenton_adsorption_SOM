@@ -198,7 +198,14 @@ write_csv(data_fenton, FTICR_FENTON, na = "")
 #
 
 ## create a new file for goethite ----
-
+data_processed_long %>% 
+# create columns for goethite and fenton
+  mutate(goethite = if_else(treatment=="PreFentonGoethite"|treatment=="PostFentonGoethite","PostGoethite","PreGoethite"),
+         fenton = if_else(treatment=="PreFenton"|treatment=="PreFentonGoethite","PreFenton","PostFenton")) %>% 
+  na.omit() %>% 
+  spread(goethite, intensity)->
+  data_goethite
+  
 # we don't need to make a new file for goethite
 # because raw_data_long has all the information we need
 
