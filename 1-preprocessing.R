@@ -186,10 +186,10 @@ data_processed %>%
 
 data_fenton %>% 
 # create a conditional column for molecules that were lost, gained, or conserved
-  mutate(loss = case_when(PreFenton >0 & PostFenton == 0 ~ "lost",
-                          PreFenton == 0 & PostFenton > 0 ~ "gained",
-                          PreFenton > 0 & PostFenton > 0 ~ "conserved"),
-         loss = factor(loss, levels = "lost","gained","conserved")) -> # order these levels
+  mutate(loss = case_when(!is.na(PreFenton) & is.na(PostFenton) ~ "lost",
+                          is.na(PreFenton) & !is.na(PostFenton) ~ "gained",
+                          !is.na(PreFenton) & !is.na(PostFenton) ~ "conserved"),
+         loss = factor(loss, levels = c("lost","gained","conserved"))) -> # order these levels
   data_fenton
 
 ### OUTPUT

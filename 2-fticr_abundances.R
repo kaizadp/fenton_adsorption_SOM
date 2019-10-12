@@ -50,17 +50,18 @@ write.csv(processed, "master.csv", na="")
 
 # `rawmaster` is the longform master file. calculate relative abundance of each molecule
 
-rawmaster %>% 
+master %>% 
   mutate(intensity = as.numeric(intensity)) %>% # set intensity as a numeric variable
-  filter(Goethite == "PreGoethite") %>% # keep only pre-Goethite data. we don't want post-adsorption data
-  dplyr::group_by(Forest, Treatment) %>% 
+  filter(treatment == c("PreFenton","PostFenton")) %>% # keep only pre-Goethite data. we don't want post-adsorption data
+  na.omit() %>% # remove all NA, or it won't calculate
+  dplyr::group_by(Forest, treatment) %>% 
   dplyr::mutate(total = sum(intensity)) %>% # add a new column calculating total intensity
   dplyr::mutate(rel_abund = (intensity/total)*100)-> # calculate relative intensity as a %
   relative_intensity
 
 # then create a column for quartiles
 relative_intensity %>% 
-  dplyr::group_by(Forest, Treatment) %>% 
+  dplyr::group_by(Forest, treatment) %>% 
   dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
   mutate(perc = cut(percentile, 
                     breaks = c(-Inf,25, 50, 75, Inf),
@@ -69,16 +70,17 @@ relative_intensity %>%
 
 # remove unnecessary columns
 relative_intensity_percentile %>% 
-  select(-intensity,-Treatment, -Goethite, -total, -rel_abund, -percentile)->
+  select(-intensity, -total, -percentile)->
   relative_intensity_percentile
   
 # merge with the hcoc file
+relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x=T)
 # relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x = T)
 
 ggplot(relative_intensity_percentile, aes(x = OC,y = HC, color = perc))+
-  geom_point(alpha = 0.1)+
+  geom_point(alpha = 0.5)+
   scale_color_brewer(palette = "Reds")+
-  facet_grid(Forest~Fenton)
+  facet_grid(Forest~treatment)
 
 ### OUTPUT
 write_csv(relative_intensity_percentile, PERCENTILE)
@@ -208,15 +210,9 @@ rawmaster %>%
 #
 # ---------------------------------------------------------------------------- ----
 # FENTON relative abundance lost vs. gained ----
-# subset the fenton2 to get just the lost/gained column
+# merge `fenton` file with `relative_intensity_percentile`
 
-fticr_data_fenton %>% 
-  select(Mass, Forest, loss)->
-  fticr_data_fenton_loss
-
-# merge loss file with data_4_hcoc
-
-fticr_fenton_loss_relabund = merge(fticr_data_4_hcoc, fticr_data_fenton_loss, by = c("Mass", "Forest"))
+fenton_los = merge(fenton, relative_intensity_percentile, by = c("Mass", "Forest"))
 
 
 ### 2.2.3. relative abundance of adsorbed and non-adsorbed classes ----
