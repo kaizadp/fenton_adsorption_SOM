@@ -35,14 +35,24 @@ identical(names(meta_SW_PREFENTONGOETHITE),names(meta_SW_POSTFENTONGOETHITE))
 
 meta_RAW = rbind(meta_HW_PREFENTONGOETHITE,meta_HW_POSTFENTONGOETHITE, meta_SW_PREFENTONGOETHITE,meta_SW_POSTFENTONGOETHITE)
 
+meta_RAW %>% 
+  na_if(.,"----") %>% 
+  mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"CondAr",
+                           is.na(PolyCyArom)&(Aromatic=="Aromatic")&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"Aromatic",
+                           is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"HighUnsatLign",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnsatAliph.N=="AlipatNoN")&is.na(SatFatAcCarb)~"UnSatAliph_noN",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&(SatFatAcCarb=="SatFACarb")~"SatFatAcCarb",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
+  meta_RAW
+
 names(meta_RAW)
 meta_RAW %>%
   select(C,H,N,O,S,P,
          mass,`H.C`,`O.C`,
          `m.z`,DBE, CRAM, `AI.mod`,
-         PolyCyArom,Aromatic,HighUnsatLign,`UnsatAliph.N`,SatFatAcCarb,`UnSatAlip.N`,
+         Class,
          KM, NKM, KMD) %>% 
-  dplyr::rename(UnSatAliph_noN = `UnsatAliph.N`,
+  dplyr::rename(
                 HC = `H.C`,
                 OC = `O.C`,
                 Mass = mass) %>% 
@@ -51,7 +61,7 @@ meta_RAW %>%
   meta_RAW_distinct
 
 
-write.csv(meta_RAW,"stomfiles/meta_RAW.csv")
+write.csv(meta_RAW_distinct,"stomfiles/meta_RAW.csv")
 #
 ## INPUT FILES -- DATA ----
 # these contain peaks seen in all 3 replicates. data have been pre-filtered.
@@ -145,15 +155,15 @@ RAW_DATA2 %>%
 
 RAW_DATA_LONG = merge(RAW_DATA_LONG, soil_key, by = "soil")
 
-RAW_DATA_LONG %>% 
-  na_if(.,"----") %>% 
-  mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"CondAr",
-         is.na(PolyCyArom)&(Aromatic=="Aromatic")&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"Aromatic",
-         is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"HighUnsatLign",
-         is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnSatAliph_noN=="AlipatNoN")&is.na(SatFatAcCarb)~"UnSatAliph_noN",
-         is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&(SatFatAcCarb=="SatFACarb")~"SatFatAcCarb",
-         is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
-  RAW_DATA_LONG
+    # RAW_DATA_LONG %>% 
+    #   na_if(.,"----") %>% 
+    #   mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"CondAr",
+    #          is.na(PolyCyArom)&(Aromatic=="Aromatic")&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"Aromatic",
+    #          is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)~"HighUnsatLign",
+    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnSatAliph_noN=="AlipatNoN")&is.na(SatFatAcCarb)~"UnSatAliph_noN",
+    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&(SatFatAcCarb=="SatFACarb")~"SatFatAcCarb",
+    #          is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnSatAliph_noN)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
+    #   RAW_DATA_LONG
   
 RAW_DATA_LONG %>% 
   select(-PolyCyArom,-Aromatic,-HighUnsatLign,-UnSatAliph_noN,-SatFatAcCarb,-UnSatAlip.N)->
@@ -161,5 +171,18 @@ RAW_DATA_LONG %>%
 
 
 write.csv(RAW_DATA_LONG,FTICR_RAWMASTER_LONG)
+
+
+
+## compare meta files from raw vs. master formularity ----
+
+meta_processed = read.csv(FTICR_META)
+
+meta_processed2 = meta_processed %>% 
+  select(Mass, El_comp, Class, HC, OC)
+meta_RAW_distinct2 = meta_RAW_distinct %>% 
+  select(Mass, HC, OC, Class)
+
+meta_combined = merge(meta_processed2, meta_RAW_distinct2, by = "Mass")
 
 
