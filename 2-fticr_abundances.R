@@ -75,6 +75,7 @@ rawmaster %>%
   raw_coregroups
 
 # ^^^ this file has relative abundance of each group for each core
+
 # now we need to summarize this for each treatment. combine all cores
 
 raw_coregroups %>% 
@@ -86,57 +87,36 @@ raw_coregroups %>%
                 relativeabund = paste(rel_abund,"\u00B1",se))->
   raw_groups
 
+# now do Tukey HSD
 
+fit_hsd <- function(dat) {
+  a <-aov(relabund ~ Fenton, data = dat)
+  h <-HSD.test(a,"Fenton")
+  #create a tibble with one column for each treatment
+  #the hsd results are row1 = drought, row2 = saturation, row3 = time zero saturation, row4 = field moist. hsd letters are in column 2
+  tibble(`PreFenton` = h$groups["PreFenton",2], 
+         `PostFenton` = h$groups["PostFenton",2])
+}
 
+raw_coregroups %>% 
+  group_by(Forest, Class) %>% 
+  do(fit_hsd(.)) %>% 
+# ^ the script above creates a data.frame with columns `Forest`, `Class`, `PreFenton`,`PostFenton`
+# in the same command, we are gathering the PreFenton and PostFenton columns into a single column, `Fenton`. hashtag efficiency
+  gather(Fenton, hsd, 3:4)->
+  hsd
 
-# go from longform to wide form to help with calculations
-raw_groups %>% 
-  spread(Class, compounds)->
-  raw_groups_wide
+# now combine `raw_groups` with `hsd`
+raw_groups_hsd = merge(raw_groups,hsd, by = c("Forest", "Fenton","Class"))
 
-raw_groups_wide = spread(raw_groups,Class,compounds)
-
-# create a `total` column adding counts across all "group" columns (columns 4-10)
-raw_groups_wide %>%
-  mutate(total = rowSums(.[4:10], na.rm = TRUE)) ->
-  raw_groups_wide
-
-## relative abundance:
-# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
-fticr_data_soil_groups_wide[,-c(1:5)] %>% 
-  sapply('/', (fticr_data_soil_groups_wide$total)/100)->
-  fticr_data_abundance
-
-fticr_data_abundance = data.frame(fticr_data_abundance)
-soilnames = data.frame(fticr_data_soil_groups_wide[,c(1:5)])
-
-fticr_data_relabundance = cbind(soilnames,fticr_data_abundance)
-
-### OUTPUT
-# write_csv(fticr_data_relabundance,path = "fticr/fticr_pore_relabund_soils.csv")
-
-## relative abundance by treatment/site
-# convert to long form and then do summary
-fticr_data_relabundance_long = fticr_data_relabundance %>% 
-  gather(Class, relabund, AminoSugar:total)
-
-
-fticr_relabundance_summary = summarySE(fticr_data_relabundance_long, measurevar = "relabund", 
-                                       groupvars = c("Forest","Treatment","Fenton","Goethite","Class"),na.rm = TRUE)
-fticr_relabundance_summary$relativeabundance = paste((round(fticr_relabundance_summary$relabund,2)),
-                                                     "\u00B1",
-                                                     round(fticr_relabundance_summary$se,2))
-
-# create a summary table of relative abundances for each treatment
-fticr_relabundance_summarytable = dcast(fticr_relabundance_summary,
-                                        Goethite+Class~Forest+Fenton,value.var = "relativeabundance") 
-
-# subset only the preGoethite data (i.e. initial and postFenton)
-fticr_relabundance_summarytable_fenton = fticr_relabundance_summarytable[fticr_relabundance_summarytable$Goethite=="PreGoethite",]
-## ^^^ this is the file we want
+# now combine the `relativeabund` and `hsd` columns and then remove all unnecessary columns
+raw_groups_hsd %>% 
+  mutate(relabund_hsd = paste(relativeabund, hsd)) %>% 
+  select(-se, -relativeabund,-hsd)->
+  raw_groups_hsd
 
 ### OUTPUT
-write.csv(fticr_relabundance_summarytable_fenton,"output/table1_fticr_relabundance_groups.csv")
+write.csv(raw_groups_hsd,RELATIVE_ABUND)
 # write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
 
 
