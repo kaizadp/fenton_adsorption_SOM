@@ -141,6 +141,7 @@ SOIL_KEY = read.csv("data/soil_key.csv")
 
 raw_data_long = merge(SOIL_KEY,RAW_DATA2, by = "code")
 
+### OUTPUT
 write.csv(raw_data_long,FTICR_RAWMASTER_LONG)
 
 
