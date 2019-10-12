@@ -9,7 +9,7 @@ source("0-packages.R")
 # 1. load files ---------------------- ####
 ## 1.1 create metadata file ----
 # importing full data file
-fticr_meta = read_excel("Master-Formularity-reprocessing V2.xlsx", sheet = "RAW")
+fticr_meta = read_excel("stomfiles/Master-Formularity-reprocessing V2.xlsx", sheet = "RAW")
 
 # remove sample data columns. All sample names are Pre-xxx or Post-xxx
 # remove unnamed columns 39-40-41

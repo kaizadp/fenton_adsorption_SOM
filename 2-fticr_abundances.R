@@ -160,10 +160,10 @@ write.csv(raw_groups_hsd,RELATIVE_ABUND)
 rawmaster %>% 
   filter(Treatment=="PreFenton") %>% 
   filter(intensity>0) %>% 
-  group_by(Mass, Forest) %>% 
+  group_by(Mass, Forest,Class) %>% 
   dplyr::summarise(intensity = mean(intensity)) %>% 
   ungroup %>% 
-  group_by(Forest) %>% 
+  group_by(Forest,Class) %>% 
   dplyr::summarize(peaks = n())->
   counts
   
@@ -171,8 +171,7 @@ master %>%
   filter(treatment=="PreFenton") %>% 
   filter(intensity>0) %>% 
   group_by(Mass, Forest) %>% 
-  dplyr::summarise(intensity = mean(intensity)) 
-%>% 
+  dplyr::summarise(intensity = mean(intensity)) %>% 
   ungroup %>% 
   group_by(Forest) %>% 
   dplyr::summarize(peaks = n())->
