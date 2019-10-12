@@ -294,26 +294,22 @@ ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
 
 # first, subset the goethite_relabund file ----
 
-fticr_data_goethite_relabund %>% 
-  select(Mass, Forest, Fenton, PreGoethite, adsorbed, new, sorption_frac)->
-  fticr_data_goethite_relabund_adsorbed
+data_goethite_relabund %>% 
+  select(Mass, Forest, fenton, PreGoethite, sorption_frac)->
+  data_goethite_adsorbed
 
 # the adsorbed_frac column has multiple levels. choose only the "most sorbed" and "most unbound"
-fticr_data_goethite_relabund_adsorbed %>% 
-  filter(sorption_frac==c("most sorbed","most unbound"))->
-  fticr_data_goethite_relabund_adsorbed  
-
-    # fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
-    #  fticr_data_goethite_relabund_adsorbed$sorption_frac=="most sorbed"|
-    #    fticr_data_goethite_relabund_adsorbed$sorption_frac=="most unbound",]
+data_goethite_adsorbed %>% 
+  filter(sorption_frac=="most sorbed"| sorption_frac=="most unbound")->
+  data_goethite_adsorbed  
 
 # merge with the class meta file
-fticr_data_goethite_relabund_adsorbed = merge(fticr_data_goethite_relabund_adsorbed, fticr_meta_class, by = "Mass", all.x = T)
+data_goethite_adsorbed = merge(data_goethite_adsorbed, meta_CLASS, by = "Mass", all.x = T)
 
-# remove the "Other" class
-fticr_data_goethite_relabund_adsorbed %>% 
-  filter(!Class=="Other")->
-  fticr_data_goethite_relabund_adsorbed
+    ## # remove the "Other" class
+    ## data_goethite_adsorbed %>% 
+    ##   filter(!Class=="Other")->
+    ##   data_goethite_adsorbed
 
     # fticr_data_goethite_relabund_adsorbed = fticr_data_goethite_relabund_adsorbed[
     #  !fticr_data_goethite_relabund_adsorbed$Class=="Other",]
@@ -321,45 +317,27 @@ fticr_data_goethite_relabund_adsorbed %>%
 
 # now follow steps for relative abundance of groups
 # 
-fticr_data_goethite_relabund_adsorbed %>% 
-  group_by(Forest,Fenton, sorption_frac,Class) %>% 
-  dplyr::summarise(compounds = sum(PreGoethite)) ->
-  fticr_data_goethite_relabund_adsorbed_groups
 
-fticr_data_goethite_groups_wide = spread(fticr_data_goethite_relabund_adsorbed_groups,Class,compounds)
-fticr_data_goethite_groups_wide = as.data.frame(fticr_data_goethite_groups_wide)
-
-# replace NA with 0
-fticr_data_goethite_groups_wide[is.na(fticr_data_goethite_groups_wide)]<-0
-
-# create a `total` column adding counts across all "group" columns (columns 4-10)
-fticr_data_goethite_groups_wide %>%
-  mutate(total = rowSums(.[4:11])) ->
-  fticr_data_goethite_groups_wide
-
-## relative abundance:
-# split the dataset into (a) just the abundance values for easy calculations, and (b) the core key. Then combine again.
-fticr_data_goethite_groups_wide[,-c(1:3)] %>% 
-  sapply('/', (fticr_data_goethite_groups_wide$total)/100)->
-  fticr_goethite_data_abundance
-
-fticr_goethite_data_abundance = data.frame(fticr_goethite_data_abundance)
-goethite_soilnames = data.frame(fticr_data_goethite_groups_wide[,c(1:3)])
-
-fticr_goethite_data_relabundance = cbind(goethite_soilnames,fticr_goethite_data_abundance)
-
-# convert to long form and then do summary
-fticr_goethite_data_relabundance_long = fticr_goethite_data_relabundance %>% 
-  gather(Class, relabund, AminoSugar:total)
+data_goethite_adsorbed %>% 
+  group_by(Forest,fenton,sorption_frac,Class) %>% 
+  dplyr::summarize(compounds = sum(as.numeric(PreGoethite), na.rm = TRUE)) %>% # this gives total intensity for each group
+  # in the same command, we will also create a column for total intensity
+  ungroup() %>% # remove the previous grouping
+  group_by(Forest, fenton, sorption_frac) %>% # create a new grouping 
+  dplyr::mutate(total = sum(compounds)) %>%  # add a column for total intensity
+  # we can also calculate the relative abundance in the same command
+  mutate(relabund = (compounds/total)*100) %>% # calculate relative abundance as a %
+  mutate(relabund = round(relabund,2))-> # round to two decimal places
+  data_goethite_adsorbed_relabund
 
 
-fticr_goethite_relabundance_summary = summarySE(fticr_goethite_data_relabundance_long, measurevar = "relabund", 
-                                                groupvars = c("Forest","Fenton","sorption_frac","Class"),na.rm = TRUE)
-fticr_goethite_relabundance_summary$relativeabundance = paste((round(fticr_goethite_relabundance_summary$relabund,2)),
-                                                              "\u00B1",
-                                                              round(fticr_goethite_relabundance_summary$se,2))
-fticr_goethite_relabundance_summarytable = dcast(fticr_goethite_relabundance_summary,
-                                                 Class~Forest+Fenton+sorption_frac,value.var = "relabund") 
+ggplot(data_goethite_adsorbed_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
+  geom_bar(stat = "identity", position = position_dodge())+
+  facet_grid(fenton~Forest)
+
+
+
+
 ## use this in the graph for relative distribution
 
 
