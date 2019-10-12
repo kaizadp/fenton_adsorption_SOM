@@ -26,10 +26,10 @@ fticr_meta %>%
 # create a new column for NOSC
 fticr_meta %>% 
   mutate(NOSC = 4 - (((4*C) + H - (3*N) - (2*O) - (2*S))/C)) %>% 
-  dplyr::rename(HC = H.C) %>% 
-  dplyr:: rename(OC = O.C) %>% 
-  mutate(OC = round(HC,2),
-         HC = round(OC,2))->
+  dplyr::rename(HC = `H.C`) %>% 
+  dplyr:: rename(OC = `O.C`) %>% 
+  mutate(OC = round(OC,2),
+         HC = round(HC,2))->
   fticr_meta
 
 # create a smaller meta file for only HC OC
@@ -69,7 +69,7 @@ write_csv(fticr_meta_elements, path = "fticr/fticr_meta_elements.csv")
 ## 1.2 import data file ----
 ### 1.2.1 final merged datafile ----
 
-fticr_data = read_excel("Master-Formularity-reprocessing V2.xlsx", sheet = "RAW")
+fticr_data = read_excel("stomfiles/Master-Formularity-reprocessing V2.xlsx", sheet = "RAW")
 
 # subset only "Mass" and sample columns
 fticr_data %>% 
