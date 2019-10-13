@@ -16,6 +16,7 @@ source("0-packages.R")
 meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
 hcoc = read.csv(HCOC)
 class = read.csv(CLASS)
+elements = read.csv(ELEMENTS)
 master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
@@ -151,6 +152,27 @@ raw_groups_hsd %>%
 ### OUTPUT
 write.csv(raw_groups_hsd,RELATIVE_ABUND, row.names = FALSE)
 # write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
+
+
+## Elements ----
+
+master_el = merge(master, elements, by = "Mass")
+
+master_el %>% 
+  filter(Treatment=="PreFenton"| Treatment=="PostFenton") %>%  # choose only the preGoethite samples
+  gather(element, el_count, C:P) %>% 
+# replace all 0 by NA and then remove NA to help with calculations  
+  na_if(.,"0") %>% # replace NA with 0
+  na.omit() %>% 
+  group_by(Forest, Treatment, element) %>% 
+  dplyr::summarise(avg = mean(el_count)) %>% 
+  ungroup %>% 
+  dplyr::mutate(avg = round(avg,0))->
+  master_el
+
+### OUTPUT
+write.csv(master_el, SUMMARY_ELEMENTS, row.names = FALSE)  
+  
 
 
 #
