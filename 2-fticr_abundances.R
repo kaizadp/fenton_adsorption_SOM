@@ -26,23 +26,23 @@ goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and po
 # this was just to compare raw counts vs. processed counts in the final. 
 # not relevant any more because the processed came from the raw.
 
-rawmaster %>% 
-  filter(Treatment=="PreFenton") %>% 
-  filter(intensity>0) %>% 
-  group_by(Mass, Forest) %>% 
-  dplyr::summarise(intensity = mean(intensity))  %>% 
-  spread(Forest, intensity)->
-  raw
-write.csv(raw, "raw.csv",na="")
-
-master %>% 
-  filter(treatment=="PreFenton") %>% 
-  filter(intensity>0) %>% 
-  group_by(Mass, Forest) %>% 
-  dplyr::summarise(intensity = mean(intensity)) %>% 
-  spread(Forest, intensity)->
-  processed
-write.csv(processed, "master.csv", na="")
+      # rawmaster %>% 
+      #   filter(Treatment=="PreFenton") %>% 
+      #   filter(intensity>0) %>% 
+      #   group_by(Mass, Forest) %>% 
+      #   dplyr::summarise(intensity = mean(intensity))  %>% 
+      #   spread(Forest, intensity)->
+      #   raw
+      # write.csv(raw, "raw.csv",na="")
+      # 
+      # master %>% 
+      #   filter(treatment=="PreFenton") %>% 
+      #   filter(intensity>0) %>% 
+      #   group_by(Mass, Forest) %>% 
+      #   dplyr::summarise(intensity = mean(intensity)) %>% 
+      #   spread(Forest, intensity)->
+      #   processed
+      # write.csv(processed, "master.csv", na="")
 # ---------------------------------------------------------------------------- ----
 
 # 1. relative intensity of each formula. and percentile ----
