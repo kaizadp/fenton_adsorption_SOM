@@ -317,11 +317,8 @@ ggplot(goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
 # first, subset the goethite_relabund file
 
 goethite_relabund %>% 
-  select(Mass, Forest, fenton, PreGoethite, sorption_frac)->
-  goethite_adsorbed
-
+  select(Mass, Forest, fenton, PreGoethite, sorption_frac) %>% 
 # the adsorbed_frac column has multiple levels. choose only the "most sorbed" and "most unbound"
-goethite_adsorbed %>% 
   filter(sorption_frac=="most sorbed"| sorption_frac=="most unbound")->
   goethite_adsorbed  
 
@@ -352,10 +349,18 @@ goethite_adsorbed %>%
   mutate(relabund = round(relabund,2))-> # round to two decimal places
   goethite_adsorbed_relabund
 
+        ## checking that the numbers still hold up when combined by forest type. they do.
+
+        # goethite_adsorbed_relabund %>% 
+        #   group_by(fenton, sorption_frac,Class) %>% 
+        #   dplyr::summarize(relab = mean(relabund)) %>% 
+        #   ungroup() %>% 
+        #   group_by(fenton,sorption_frac) %>% 
+        #   dplyr::summarise(rel = sum(relab))
 
 ggplot(goethite_adsorbed_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
-  geom_bar(stat = "identity", position = position_dodge())+
-  facet_grid(fenton~Forest)
+  geom_bar(stat = "summary", position = position_dodge())+
+  facet_wrap(~fenton)
 ## use this in the graph for relative distribution
 
 ### OUTPUT
