@@ -368,6 +368,13 @@ ggplot(goethite_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
 write.csv(goethite_relabund,GOETHITE_RELABUND, row.names = FALSE)
 
 #
+############################
+############################
+# STOP HERE
+############################
+############################
+
+#
 # ---------------------------------------------------------------------------- ---- 
 
 
