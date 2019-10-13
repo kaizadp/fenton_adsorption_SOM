@@ -57,6 +57,9 @@ theme_kp <- function() {  # this for all the elements common across plots
     )
 }
 
+
+
+
 ## SET OUTPUT FILES
 # from SCRIPT 1 
 FTICR_META <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
@@ -74,4 +77,6 @@ FTICR_GOETHITE <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, inte
 PERCENTILE <- "fticr/fticr_raw_percentile.csv" # relative intensities and percentile classification for native and Fenton extracts
 RELATIVE_ABUND <- "fticr/fticr_relative_abundance.csv"
 SUMMARY_ELEMENTS <- "fticr/fticr_summary_elements.csv"
+FENTON_LOSS <- "fticr/fticr_fenton_loss.csv"
 GOETHITE_ADSORPTION <- "fticr/fticr_goethite_sorbed.csv"
+GOETHITE_RELABUND <- "fticr/fticr_goethite_relabund.csv"

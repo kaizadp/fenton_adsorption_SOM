@@ -1,0 +1,47 @@
+"Forest","fenton","sorption_frac","Class","compounds","total","relabund"
+"HW","PreFenton","most sorbed","Aliphatic-noN",152961381,4277307039.33333,3.58
+"HW","PreFenton","most sorbed","Aliphatic+N",85290364,4277307039.33333,1.99
+"HW","PreFenton","most sorbed","Aromatic",629571757,4277307039.33333,14.72
+"HW","PreFenton","most sorbed","Carbohydrate-like",66265262.3333333,4277307039.33333,1.55
+"HW","PreFenton","most sorbed","Condensed Ar",118544291.333333,4277307039.33333,2.77
+"HW","PreFenton","most sorbed","Lignin-like",3224673983.66667,4277307039.33333,75.39
+"HW","PreFenton","most unbound","Aliphatic-noN",467609252.333333,1229486323,38.03
+"HW","PreFenton","most unbound","Aliphatic+N",63564409.3333333,1229486323,5.17
+"HW","PreFenton","most unbound","Aromatic",3973930,1229486323,0.32
+"HW","PreFenton","most unbound","Carbohydrate-like",235990970.666667,1229486323,19.19
+"HW","PreFenton","most unbound","Condensed Ar",0,1229486323,0
+"HW","PreFenton","most unbound","Lignin-like",458347760.666667,1229486323,37.28
+"HW","PostFenton","most sorbed","Aliphatic-noN",24558925.3333333,5248739190.33333,0.47
+"HW","PostFenton","most sorbed","Aliphatic+N",60640512.3333333,5248739190.33333,1.16
+"HW","PostFenton","most sorbed","Aromatic",155880250.333333,5248739190.33333,2.97
+"HW","PostFenton","most sorbed","Carbohydrate-like",1948973738,5248739190.33333,37.13
+"HW","PostFenton","most sorbed","Condensed Ar",11560279.6666667,5248739190.33333,0.22
+"HW","PostFenton","most sorbed","Lignin-like",3047125484.66667,5248739190.33333,58.05
+"HW","PostFenton","most unbound","Aliphatic-noN",597527601.333333,2032584403.66667,29.4
+"HW","PostFenton","most unbound","Aliphatic+N",183791903.666667,2032584403.66667,9.04
+"HW","PostFenton","most unbound","Aromatic",0,2032584403.66667,0
+"HW","PostFenton","most unbound","Carbohydrate-like",194508109.666667,2032584403.66667,9.57
+"HW","PostFenton","most unbound","Condensed Ar",0,2032584403.66667,0
+"HW","PostFenton","most unbound","Lignin-like",1056756789,2032584403.66667,51.99
+"SW","PreFenton","most sorbed","Aliphatic-noN",29609064.6666667,3848082147,0.77
+"SW","PreFenton","most sorbed","Aliphatic+N",42814408,3848082147,1.11
+"SW","PreFenton","most sorbed","Aromatic",592867241.666667,3848082147,15.41
+"SW","PreFenton","most sorbed","Carbohydrate-like",193791115,3848082147,5.04
+"SW","PreFenton","most sorbed","Condensed Ar",83514924,3848082147,2.17
+"SW","PreFenton","most sorbed","Lignin-like",2905485393.66667,3848082147,75.5
+"SW","PreFenton","most unbound","Aliphatic-noN",1583530884.66667,2976542955,53.2
+"SW","PreFenton","most unbound","Aliphatic+N",259674395,2976542955,8.72
+"SW","PreFenton","most unbound","Carbohydrate-like",107195080.666667,2976542955,3.6
+"SW","PreFenton","most unbound","Condensed Ar",0,2976542955,0
+"SW","PreFenton","most unbound","Lignin-like",1026142594.66667,2976542955,34.47
+"SW","PostFenton","most sorbed","Aliphatic-noN",81692371,5313373998.66667,1.54
+"SW","PostFenton","most sorbed","Aliphatic+N",70237649.3333334,5313373998.66667,1.32
+"SW","PostFenton","most sorbed","Aromatic",72177235.3333333,5313373998.66667,1.36
+"SW","PostFenton","most sorbed","Carbohydrate-like",2468130312.33333,5313373998.66667,46.45
+"SW","PostFenton","most sorbed","Condensed Ar",9845482.66666667,5313373998.66667,0.19
+"SW","PostFenton","most sorbed","Lignin-like",2611290948,5313373998.66667,49.15
+"SW","PostFenton","most unbound","Aliphatic-noN",842590537,1763782487,47.77
+"SW","PostFenton","most unbound","Aliphatic+N",76596767.6666667,1763782487,4.34
+"SW","PostFenton","most unbound","Carbohydrate-like",59967167,1763782487,3.4
+"SW","PostFenton","most unbound","Condensed Ar",0,1763782487,0
+"SW","PostFenton","most unbound","Lignin-like",784628015.333333,1763782487,44.49

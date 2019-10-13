@@ -12,10 +12,16 @@ output: html_document
 source("0-packages.R")
 
 # INPUT
+meta_elements = read.csv(ELEMENTS)
+hcoc = read.csv(HCOC)
+
 relabund = read.csv(RELATIVE_ABUND)# <- "fticr/fticr_relative_abundance.csv"
 elements = read.csv(SUMMARY_ELEMENTS)# <- "fticr/fticr_summary_elements.csv"
-percentile = read.csv(PERCENTILE)
 
+percentile = read.csv(PERCENTILE)
+fentonloss = read.csv(FENTON_LOSS)
+sorbed = read.csv(GOETHITE_ADSORPTION)
+sorbed_relabund = read.csv(GOETHITE_RELABUND)
 ```
 
 # Native SOM and the Fenton reaction
@@ -48,21 +54,125 @@ percentile %>%
   percentile
 
 ggplot(percentile, aes(x=OC,y=HC,color=perc))+
-  geom_point(alpha=0.5, size=2)+
+  geom_point(alpha=0.5, size=1)+
   scale_color_brewer(palette = "Reds")+
+  
+  xlim(0,1.25)+
+  ylim(0,2.5)+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")+
+
   facet_grid(Treatment~Forest)+
+
+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_bw()+
   theme_kp()
 
 ```
 
 ----
-## fenton vs. oxygens
+## fenton 
 
+1. fenton loss/gained
+```{r fenton, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+
+ggplot(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color = loss))+
+  geom_point(alpha=0.5, size=2)+
+  scale_color_brewer(palette = "Dark2")+
+  
+  xlim(0,1.25)+
+  ylim(0,2.5)+
+  xlab("O/C")+
+  ylab("H/C")+
+  
+  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
+  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")+
+
+  theme_bw()+
+  theme_kp()
+```
+
+
+---
+
+2. fenton vs. oxygens
+
+```{r fenton_oxygen, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
+
+# create a new column assigning -ve value to lost abundance
+fenton_el %>% 
+  mutate(rel_abund_new = ifelse(loss == "gained",rel_abund,-1*rel_abund))->
+  fenton_el
+
+fenton_el %>% 
+  group_by(loss,O) %>% 
+  dplyr::summarize(total = sum(rel_abund)) %>% 
+  ungroup() %>% 
+  group_by(loss) %>% 
+  dplyr::mutate(median = median(O))->
+  loss_summary
+
+  
+ggplot(fenton_el[!fenton_el$loss=="conserved",], aes(x = as.factor(O), y = rel_abund_new, fill=loss))+
+  geom_bar(stat = "identity", alpha=0.6)+
+  scale_fill_brewer(palette="Dark2")+
+  
+  scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))+
+  scale_y_continuous(breaks = seq(-8, 8, by = 4))+
+  ylab("% of total intensity")+
+  xlab("number of O")+
+
+  geom_segment(x = 13.5, y = 0, xend = 13.5, yend = 7.5,color="black",linetype="longdash")+
+  geom_segment(x = 10.5, y = 0, xend = 10.5, yend = -7.5,color="black",linetype="longdash")+
+  annotate("text", label = "median 13.5", x = 13.5, y = 7.8)+ 
+  annotate("text", label = "median 10.5", x = 10.5, y = -7.8)+ 
+
+  
+  
+  theme_bw()+
+  theme_kp()
+
+```
 
 ----
 
 # goethite
+
+1. sorption fractionation
+
+```{r goethite_vk, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=12, fig.height=5,fig.path = "images/"}
+
+# set order of levels
+sorbed %>% 
+  mutate(sorption_frac = factor(sorption_frac, levels = c("most sorbed",
+                                                        "more sorbed",
+                                                        "sorbed",
+                                                        "minimal change",
+                                                        "unbound",
+                                                        "more unbound",
+                                                        "most unbound")),
+         fenton = factor(fenton, levels = c("PreFenton","PostFenton"))
+         )->
+  sorbed
+
+gg_vankrev(sorbed, aes(x = OC, y = HC, color=sorption_frac))+
+  scale_color_brewer(palette = "PuOr")+
+  facet_wrap(~fenton)+
+  theme_bw()+
+  theme_kp()+
+  theme(legend.position = "right")
+
+```
+
 
 ## van krevelen of sorption
 
