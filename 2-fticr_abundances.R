@@ -290,9 +290,9 @@ ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
 
 #
 # ---------------------------------------------------------------------------- ----
-# GOETHITE relative abundance of sorbed vs. unsorbed groups
+# GOETHITE relative abundance of sorbed vs. unsorbed groups ----
 
-# first, subset the goethite_relabund file ----
+# first, subset the goethite_relabund file
 
 data_goethite_relabund %>% 
   select(Mass, Forest, fenton, PreGoethite, sorption_frac)->

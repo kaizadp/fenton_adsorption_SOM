@@ -96,6 +96,10 @@ meta_RAW %>%
   distinct()-> # this removes duplicates
   meta_RAW_distinct
 
+meta_RAW_distinct %>% 
+  select(Mass,Class)->
+  meta_CLASS
+
 ### OUTPUT
 write.csv(meta_RAW_distinct,"stomfiles/meta_RAW.csv")
 
