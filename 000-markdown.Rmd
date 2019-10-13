@@ -48,28 +48,14 @@ relabund%>%
 
 ## van krevelens
 
-```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=12, fig.height=12,fig.path = "images/"}
 percentile %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   percentile
 
-ggplot(percentile, aes(x=OC,y=HC,color=perc))+
-  geom_point(alpha=0.5, size=1)+
+gg_vankrev(percentile, aes(x=OC,y=HC,color=perc))+
   scale_color_brewer(palette = "Reds")+
-  
-  xlim(0,1.25)+
-  ylim(0,2.5)+
-  xlab("O/C")+
-  ylab("H/C")+
-  
-  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")+
-
   facet_grid(Treatment~Forest)+
-
-
   guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_bw()+
   theme_kp()
@@ -82,20 +68,8 @@ ggplot(percentile, aes(x=OC,y=HC,color=perc))+
 1. fenton loss/gained
 ```{r fenton, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
 
-ggplot(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color = loss))+
-  geom_point(alpha=0.5, size=2)+
+gg_vankrev(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color = loss))+
   scale_color_brewer(palette = "Dark2")+
-  
-  xlim(0,1.25)+
-  ylim(0,2.5)+
-  xlab("O/C")+
-  ylab("H/C")+
-  
-  geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
-  geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")+
-
   theme_bw()+
   theme_kp()
 ```
@@ -173,9 +147,35 @@ gg_vankrev(sorbed, aes(x = OC, y = HC, color=sorption_frac))+
 
 ```
 
+2. contribution of groups
+```{r sorbed_groups, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=9, fig.height=7,fig.path = "images/"}
+sorbed_relabund %>% 
+  group_by(fenton,Class, sorption_frac) %>% 
+  dplyr::summarise(relabund = mean(relabund)) %>% 
+  ungroup %>% 
+  dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton")), 
+                  Class = factor(Class, levels = c("Condensed Ar",
+                                                 "Aromatic",
+                                                 "Lignin-like",
+                                                 "Carbohydrate-like",
+                                                 "Aliphatic-noN",
+                                                 "Aliphatic+N")))->
+  sorbed_relabund2
 
-## van krevelen of sorption
 
-## relative intensity of sorption
+ggplot(sorbed_relabund2, aes(x=Class, y=relabund, fill=sorption_frac))+
+  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, alpha=1,color="black")+
+#  scale_fill_manual(values = c("#B35806","#542788"))+
+  scale_fill_manual(values = c("#F1A340","#998EC3"))+
+  
+  ylab("% of total intensity")+
+  xlab("")+
+
+  facet_wrap(~fenton)+
+  theme_bw()+
+  theme_kp()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
+
+```
 
 
