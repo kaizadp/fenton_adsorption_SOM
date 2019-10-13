@@ -18,7 +18,8 @@ percentile = read.csv(PERCENTILE)
 
 ```
 
-# Native SOM
+# Native SOM and the Fenton reaction
+## summary tables
 ```{r summary table, echo=FALSE,warning=FALSE,message=FALSE}
 
 elements %>% 
@@ -35,11 +36,11 @@ relabund%>%
   select(Class,sp, val) %>% 
   spread(sp, val) %>% 
   knitr::kable(align = "r")
-
-
-
-
 ```
+
+----
+
+## van krevelens
 
 ```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
 percentile %>% 
@@ -54,3 +55,17 @@ ggplot(percentile, aes(x=OC,y=HC,color=perc))+
   theme_kp()
 
 ```
+
+----
+## fenton vs. oxygens
+
+
+----
+
+# goethite
+
+## van krevelen of sorption
+
+## relative intensity of sorption
+
+

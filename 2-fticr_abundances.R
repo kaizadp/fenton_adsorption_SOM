@@ -350,7 +350,6 @@ goethite_adsorbed %>%
   goethite_adsorbed_relabund
 
         ## checking that the numbers still hold up when combined by forest type. they do.
-
         # goethite_adsorbed_relabund %>% 
         #   group_by(fenton, sorption_frac,Class) %>% 
         #   dplyr::summarize(relab = mean(relabund)) %>% 
