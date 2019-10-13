@@ -36,7 +36,11 @@ library(gsheet)
 ## SET OUTPUT FILES
 # from SCRIPT 1 
 FTICR_META <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
-HCOC <- "fticr/fticr_meta_hcoc.csv"
+HCOC <- "fticr/meta_hcoc.csv"
+ELEMENTS <-  "fticr/meta_elements.csv"
+CLASS <- "fticr/meta_class.csv"
+
+
 FTICR_MASTER_LONG <- "fticr/fticr_master_long.csv" #
 FTICR_RAWMASTER_LONG <- "fticr/fticr_rawmaster_long.csv"
 FTICR_FENTON <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only

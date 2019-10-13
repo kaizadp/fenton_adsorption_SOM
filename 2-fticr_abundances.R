@@ -7,15 +7,15 @@
 # DO NOT SOURCE SCRIPT #1.
 # Run Script #1 separately, then start a new session (ctrl+shift+F10) and run this script.
 
+.rs.restartR()
+
 source("0-packages.R")
 
 
 # INPUT FILES
-# use this file for meta for now. this may move to a different folder/name later
-meta = read.csv("stomfiles/meta_RAW.csv")
-hcoc = meta %>% select(Mass,HC,OC)
-#meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
-#hcoc = read.csv(HCOC)
+meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
+hcoc = read.csv(HCOC)
+class = read.csv(CLASS)
 master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
@@ -78,12 +78,12 @@ relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "
 # relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x = T)
 
 ggplot(relative_intensity_percentile, aes(x = OC,y = HC, color = perc))+
-  geom_point(alpha = 0.5)+
+  geom_point(alpha = 0.6)+
   scale_color_brewer(palette = "Reds")+
   facet_grid(Forest~Treatment)
 
 ### OUTPUT
-write_csv(relative_intensity_percentile, PERCENTILE)
+write.csv(relative_intensity_percentile, PERCENTILE, row.names = FALSE)
 # this file will be used for the Van Krevelen plots (preFenton and postFenton)
 
 #
@@ -149,7 +149,7 @@ raw_groups_hsd %>%
   raw_groups_hsd
 
 ### OUTPUT
-write.csv(raw_groups_hsd,RELATIVE_ABUND)
+write.csv(raw_groups_hsd,RELATIVE_ABUND, row.names = FALSE)
 # write_csv(fticr_relabundance_summary_summarytable,path = "output/table1_relabundance_groups_bytrt.csv")
 
 
@@ -256,7 +256,7 @@ ggplot(fenton_loss[!fenton_loss$loss=="conserved",], aes(x = OC,y = HC, color = 
 # < -0.00015 = most sorbed | -0.00010 = more sorbed | -0.00005 = sorbed | 0.00005 = minimal change | 0.00010 = unbound | 0.00015 = more unbound | > 0.00015 = most unbound,
 # ALL the calculations are done in one step.
 
-data_goethite %>% 
+goethite %>% 
   mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
   dplyr::group_by(Forest,fenton) %>% 
 # replace all NA with 0
@@ -275,14 +275,14 @@ data_goethite %>%
                              labels = c("most sorbed", "more sorbed", "sorbed", "minimal change","unbound","more unbound","most unbound"))) ->
 # cleaning up: remove unnecessary columnns  
 #  select(-(preg_total:delta_abund))->
-  data_goethite_relabund
+  goethite_relabund
 
-data_goethite_relabund = merge(data_goethite_relabund,hcoc, by = "Mass", all.x = T)  
+goethite_relabund = merge(goethite_relabund,hcoc, by = "Mass", all.x = T)  
 
 ### OUTPUT
-write_csv(data_goethite_relabund, GOETHITE_ADSORPTION)
+write.csv(goethite_relabund, GOETHITE_ADSORPTION, row.names = FALSE)
 
-ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
+ggplot(goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
   geom_point(alpha = 0.2)+
   scale_color_brewer(palette = "PuOr")+
   facet_wrap(~fenton)+
@@ -294,17 +294,17 @@ ggplot(data_goethite_relabund, aes(x = OC,y = HC, color = sorption_frac))+
 
 # first, subset the goethite_relabund file
 
-data_goethite_relabund %>% 
+goethite_relabund %>% 
   select(Mass, Forest, fenton, PreGoethite, sorption_frac)->
-  data_goethite_adsorbed
+  goethite_adsorbed
 
 # the adsorbed_frac column has multiple levels. choose only the "most sorbed" and "most unbound"
-data_goethite_adsorbed %>% 
+goethite_adsorbed %>% 
   filter(sorption_frac=="most sorbed"| sorption_frac=="most unbound")->
-  data_goethite_adsorbed  
+  goethite_adsorbed  
 
 # merge with the class meta file
-data_goethite_adsorbed = merge(data_goethite_adsorbed, meta_CLASS, by = "Mass", all.x = T)
+goethite_adsorbed = merge(goethite_adsorbed, class , by = "Mass", all.x = T)
 
     ## # remove the "Other" class
     ## data_goethite_adsorbed %>% 
@@ -318,7 +318,7 @@ data_goethite_adsorbed = merge(data_goethite_adsorbed, meta_CLASS, by = "Mass", 
 # now follow steps for relative abundance of groups
 # 
 
-data_goethite_adsorbed %>% 
+goethite_adsorbed %>% 
   group_by(Forest,fenton,sorption_frac,Class) %>% 
   dplyr::summarize(compounds = sum(as.numeric(PreGoethite), na.rm = TRUE)) %>% # this gives total intensity for each group
   # in the same command, we will also create a column for total intensity
@@ -328,14 +328,16 @@ data_goethite_adsorbed %>%
   # we can also calculate the relative abundance in the same command
   mutate(relabund = (compounds/total)*100) %>% # calculate relative abundance as a %
   mutate(relabund = round(relabund,2))-> # round to two decimal places
-  data_goethite_adsorbed_relabund
+  goethite_adsorbed_relabund
 
 
-ggplot(data_goethite_adsorbed_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
+ggplot(goethite_adsorbed_relabund, aes(x = Class, y = relabund, fill = sorption_frac))+
   geom_bar(stat = "identity", position = position_dodge())+
   facet_grid(fenton~Forest)
 ## use this in the graph for relative distribution
 
+### OUTPUT
+write.csv(goethite_adsorbed_relabund,GOETHITE_ADSORPTION, row.names = FALSE)
 
 #
 # ---------------------------------------------------------------------------- ---- 

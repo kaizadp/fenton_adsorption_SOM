@@ -100,8 +100,19 @@ meta_RAW_distinct %>%
   select(Mass,Class)->
   meta_CLASS
 
+meta_RAW_distinct %>% 
+  select(Mass, C:P)->
+  meta_ELEMENTS
+
+meta_RAW_distinct %>% 
+  select(Mass, HC,OC)->
+  meta_HCOC
+
 ### OUTPUT
-write.csv(meta_RAW_distinct,"stomfiles/meta_RAW.csv")
+write.csv(meta_RAW_distinct,FTICR_META,row.names = FALSE)
+write.csv(meta_CLASS,CLASS,row.names = FALSE)
+write.csv(meta_ELEMENTS,ELEMENTS,row.names = FALSE)
+write.csv(meta_HCOC,HCOC,row.names = FALSE)
 
 
 #
@@ -145,7 +156,7 @@ RAW_DATA2 = merge(RAW_DATA,meta_RAW_distinct,by = "Mass", all.y = T)
 raw_data_long = merge(SOIL_KEY,RAW_DATA2, by = "code")
 
 ### OUTPUT
-write.csv(raw_data_long,FTICR_RAWMASTER_LONG)
+write.csv(raw_data_long,FTICR_RAWMASTER_LONG,row.names = FALSE)
 
 
 
@@ -173,7 +184,7 @@ data_processed_long %>%
   data_processed
 
 ### OUTPUT
-write.csv(data_processed_long, FTICR_MASTER_LONG)
+write.csv(data_processed_long, FTICR_MASTER_LONG,row.names = FALSE)
 
 data_processed_long %>% 
   dplyr::group_by(Forest, Treatment) %>% 
@@ -198,7 +209,7 @@ data_fenton %>%
   data_fenton
 
 ### OUTPUT
-write_csv(data_fenton, FTICR_FENTON, na = "")
+write.csv(data_fenton, FTICR_FENTON, na = "",row.names = FALSE)
 
 #
 
@@ -213,18 +224,19 @@ data_processed_long %>%
   data_goethite
   
 
-data_goethite %>% 
-  dplyr::group_by(Forest, fenton) %>% 
-  dplyr::summarise(preg = mean(PreGoethite, na.rm = TRUE),
-                   postg = mean(PostGoethite, na.rm = TRUE))
+    # data_goethite %>% 
+    #   dplyr::group_by(Forest, fenton) %>% 
+    #   dplyr::summarise(preg = mean(PreGoethite, na.rm = TRUE),
+    #                    postg = mean(PostGoethite, na.rm = TRUE))
 
+### OUTPUT
+write.csv(data_goethite,FTICR_GOETHITE,na="",row.names = FALSE)
 
-
-# we don't need to make a new file for goethite
-# because raw_data_long has all the information we need
 
 # we need to create columns for adsorbed vs. unbound. 
 # we will do that in the `abundance` script, because we need to calculate relative abundances for that
+
+# ---------------------------------------------------------------------------- ---- 
 
 ### the code below was from the old script. not sure why I did this roundabout crap
 
