@@ -8,29 +8,49 @@ output: html_document
 ## R Markdown
 
 
-```{r input}
+```{r input, echo=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
 source("0-packages.R")
 
 # INPUT
-
+relabund = read.csv(RELATIVE_ABUND)# <- "fticr/fticr_relative_abundance.csv"
+elements = read.csv(SUMMARY_ELEMENTS)# <- "fticr/fticr_summary_elements.csv"
+percentile = read.csv(PERCENTILE)
 
 ```
 
 # Native SOM
-```{r summary table}
-summary(cars)
+```{r summary table, echo=FALSE,warning=FALSE,message=FALSE}
+
+elements %>% 
+  dplyr::mutate(sp = paste(Forest, Treatment),
+                val = paste(avg)) %>% 
+  select(element, sp, val) %>% 
+  spread(sp, val) %>% 
+  knitr::kable(align = "r")
+
+relabund%>% 
+  ungroup %>% 
+  dplyr::mutate(sp = paste(Forest, Fenton),
+                val = paste(relabund_hsd)) %>% 
+  select(Class,sp, val) %>% 
+  spread(sp, val) %>% 
+  knitr::kable(align = "r")
+
+
+
+
 ```
 
-```{r native van krev}
+```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+percentile %>% 
+  mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
+  percentile
+
+ggplot(percentile, aes(x=OC,y=HC,color=perc))+
+  geom_point(alpha=0.5, size=2)+
+  scale_color_brewer(palette = "Reds")+
+  facet_grid(Treatment~Forest)+
+  theme_bw()+
+  theme_kp()
 
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

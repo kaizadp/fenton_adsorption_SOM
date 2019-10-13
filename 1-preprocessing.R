@@ -68,12 +68,12 @@ meta_RAW = rbind(meta_HW_PREFENTONGOETHITE,meta_HW_POSTFENTONGOETHITE, meta_SW_P
 
 meta_RAW %>% 
   na_if(.,"----") %>% 
-  mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"CondAr",
+  mutate(Class = case_when(!is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"Condensed Ar",
                            is.na(PolyCyArom)&(Aromatic=="Aromatic")&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"Aromatic",
-                           is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"HighUnsatLign",
-                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnsatAliph.N=="AlipatNoN")&is.na(SatFatAcCarb)~"UnSatAliph_noN",
-                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&(SatFatAcCarb=="SatFACarb")~"SatFatAcCarb",
-                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphat+N"))->
+                           is.na(PolyCyArom)&is.na(Aromatic)&(HighUnsatLign=="HUnSatLig")&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)~"Lignin-like",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&(UnsatAliph.N=="AlipatNoN")&is.na(SatFatAcCarb)~"Aliphatic-noN",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&(SatFatAcCarb=="SatFACarb")~"Carbohydrate-like",
+                           is.na(PolyCyArom)&is.na(Aromatic)&is.na(HighUnsatLign)&is.na(UnsatAliph.N)&is.na(SatFatAcCarb)&(UnSatAlip.N=="Alipat+N")~"Aliphatic+N"))->
   meta_RAW
 
 # now select only the relevant columns
