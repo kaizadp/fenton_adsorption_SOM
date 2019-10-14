@@ -46,21 +46,35 @@ relabund%>%
 
 ----
 
-## van krevelens
+## van krevelen: native SOM
 
-```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=12, fig.height=12,fig.path = "images/"}
+```{r native van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=12, fig.height=6,fig.path = "images/"}
 percentile %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   percentile
 
-gg_vankrev(percentile, aes(x=OC,y=HC,color=perc))+
-  scale_color_brewer(palette = "Reds")+
-  facet_grid(Treatment~Forest)+
-  guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=perc))+
+  scale_color_brewer(palette = "Blues")+
+  facet_wrap(~Forest)+
+  #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_bw()+
   theme_kp()
 
 ```
+
+## van krevelen: Fenton
+
+```{r fenton van krev, echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=12, fig.height=6,fig.path = "images/"}
+gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC,color=perc))+
+  scale_color_brewer(palette = "Reds")+
+  facet_wrap(~Forest)+
+  #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+  theme_bw()+
+  theme_kp()
+
+```
+
+
 
 ----
 ## fenton 
