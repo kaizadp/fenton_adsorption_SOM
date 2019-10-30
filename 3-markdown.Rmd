@@ -93,7 +93,7 @@ gg_vankrev(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color
 
 2. fenton vs. oxygens
 
-```{r fenton_oxygen, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+```{r fenton_oxygen, eval=FALSE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
 fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
 
 # create a new column assigning -ve value to lost abundance
@@ -128,8 +128,47 @@ ggplot(fenton_el[!fenton_el$loss=="conserved",], aes(x = as.factor(O), y = rel_a
   
   theme_bw()+
   theme_kp()
+```
+
+
+```{r fenton_oxygen2, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=8, fig.height=8,fig.path = "images/"}
+fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
+
+fenton_el %>% 
+  group_by(loss,O) %>% 
+  dplyr::summarize(counts = n()) %>% 
+  dplyr::mutate(counts = as.numeric(counts))%>% 
+  ungroup() %>% 
+  group_by(loss) %>% 
+  dplyr::mutate(cumsum = cumsum(counts),
+                median = median(cumsum),
+                counts2 = if_else(loss == "gained",counts,-1*counts))->
+  loss_summary2
+
+ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=counts2, fill = loss))+
+ geom_segment(x = 14, y = 0, xend = 14, yend = 140,color="black",linetype="longdash")+
+  geom_segment(x = 10, y = 0, xend = 10, yend = -180,color="black",linetype="longdash")+
+  annotate("text", label = "median 14", x = 14, y = 150)+ 
+  annotate("text", label = "median 10", x = 10, y = -190)+
+  
+  geom_bar(stat = "identity", alpha=0.6)+
+  scale_fill_brewer(palette="Dark2")+
+  
+  scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))+
+  ylab("number of peaks")+
+  xlab("number of O")+
+
+   
+
+  
+  
+  theme_bw()+
+  theme_kp()
+
 
 ```
+
+
 
 ----
 

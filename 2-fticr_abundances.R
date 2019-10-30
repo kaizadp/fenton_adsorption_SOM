@@ -21,7 +21,7 @@ master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
 goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
-
+#
 # ---------------------------------------------------------------------------- ----
 # this was just to compare raw counts vs. processed counts in the final. 
 # not relevant any more because the processed came from the raw.
