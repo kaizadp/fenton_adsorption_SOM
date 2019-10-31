@@ -141,15 +141,14 @@ fenton_el %>%
   ungroup() %>% 
   group_by(loss) %>% 
   dplyr::mutate(cumsum = cumsum(counts),
-                median = median(cumsum),
                 counts2 = if_else(loss == "gained",counts,-1*counts))->
   loss_summary2
 
 ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=counts2, fill = loss))+
- geom_segment(x = 14, y = 0, xend = 14, yend = 140,color="black",linetype="longdash")+
-  geom_segment(x = 10, y = 0, xend = 10, yend = -180,color="black",linetype="longdash")+
-  annotate("text", label = "median 14", x = 14, y = 150)+ 
-  annotate("text", label = "median 10", x = 10, y = -190)+
+ geom_segment(x = 13.5, y = 0, xend = 13.5, yend = 140,color="black",linetype="longdash")+
+  geom_segment(x = 8.5, y = 0, xend = 8.5, yend = -190,color="black",linetype="longdash")+
+  annotate("text", label = "median 13", x = 13.5, y = 150)+ 
+  annotate("text", label = "median 8", x = 8.5, y = -200)+
   
   geom_bar(stat = "identity", alpha=0.6)+
   scale_fill_brewer(palette="Dark2")+
@@ -157,12 +156,7 @@ ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=c
   scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))+
   ylab("number of peaks")+
   xlab("number of O")+
-
-   
-
   
-  
-  theme_bw()+
   theme_kp()
 
 
@@ -231,4 +225,27 @@ ggplot(sorbed_relabund2, aes(x=Class, y=relabund, fill=sorption_frac))+
 
 ```
 
+
+```{r sorbed_O, eval=TRUE,echo=FALSE, warning=FALSE,message=FALSE,fig.cap="native SOM", fig.width=9, fig.height=7,fig.path = "images/"}
+
+sorbed %>% 
+  select(Mass, Forest, sorption_frac, fenton) %>% 
+  filter(sorption_frac=="most sorbed" | sorption_frac=="most unbound") %>% 
+  left_join(select(meta_elements, Mass, O), by = "Mass") %>% 
+  group_by(fenton,sorption_frac,Mass,O) %>% 
+  dplyr::summarize(counts = n()) %>% 
+  ungroup %>% 
+  group_by(fenton,sorption_frac,O) %>% 
+  dplyr::summarise(counts = n()) %>% 
+  dplyr::mutate(counts = as.numeric(counts),
+                counts2 = if_else(sorption_frac=="most unbound",counts,-1*counts)) %>% 
+  ungroup() %>% 
+  group_by(fenton,sorption_frac) %>% 
+  dplyr::mutate(cumsum = cumsum(counts))->sorbed_el
+
+ggplot(sorbed_el, aes(x = O, y = counts2, fill = sorption_frac))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~fenton)
+
+ ```
 

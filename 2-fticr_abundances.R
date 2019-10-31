@@ -21,6 +21,7 @@ master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 rawmaster = read.csv(FTICR_RAWMASTER_LONG)# <- "fticr/fticr_rawmaster_long.csv"
 fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fenton data, intensities only
 goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
+
 #
 # ---------------------------------------------------------------------------- ----
 # this was just to compare raw counts vs. processed counts in the final. 
@@ -200,6 +201,19 @@ rawmaster %>%
   counts
   
 
+### 2.1.1 peaks common to both forests ----
+master %>% 
+  filter(Treatment=="PreFenton") %>% 
+  filter(intensity>0) %>% 
+  group_by(Mass) %>% 
+  dplyr::summarise(counts = n())->peakcounts_forest
+
+total_peaks = nrow(peakcounts_forest)
+
+peakcounts_forest %>% filter(counts==2) %>% dplyr::summarise(common_peaks = n())
+common_peaks = nrow(peakcounts_forest$counts==2)
+
+#
 ## 2.2 FENTON PEAK COUNTS  ----
 # to determine peak counts in pre- vs. post-Fenton extracts
 rawmaster %>% 
