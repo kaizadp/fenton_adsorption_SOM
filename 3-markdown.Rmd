@@ -64,7 +64,7 @@ relabund%>%
 
 ## van krevelen: native SOM
 
-```{r native_van_krev, fig.cap="native SOM", fig.width=12, fig.height=6}
+```{r native_van_krev, fig.cap="native SOM", fig.width=9, fig.height=5}
 percentile %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   percentile
@@ -79,7 +79,7 @@ gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=p
 
 ## van krevelen: Fenton
 
-```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=12, fig.height=6}
+```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=9, fig.height=5}
 gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC,color=perc))+
   scale_color_brewer(palette = "Reds")+
   facet_wrap(~Forest)+
@@ -93,7 +93,7 @@ gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC,color=
 ## fenton 
 
 1. fenton loss/gained
-```{r fenton, fig.cap="fenton loss", fig.width=8, fig.height=8}
+```{r fenton, fig.cap="fenton loss", fig.width=5, fig.height=5}
 
 gg_vankrev(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color = loss, shape=loss))+
   scale_shape_manual(values = c(16,1))+
@@ -104,7 +104,7 @@ gg_vankrev(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color
 
 2. fenton vs. oxygens
 
-```{r fenton_oxygen2, fig.cap="fenton  vs. no. of oxygens", fig.width=8, fig.height=8}
+```{r fenton_oxygen2, fig.cap="fenton  vs. no. of oxygens", fig.width=5, fig.height=5}
 fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
 
 fenton_el %>% 
@@ -157,7 +157,7 @@ gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed,
 ```
 
 2. contribution of groups
-```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=7}
+```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=6}
 sorbed_relabund %>% 
   group_by(fenton,adsorbed,Class) %>% 
   dplyr::summarise(relabund = mean(relabund)) %>% 
