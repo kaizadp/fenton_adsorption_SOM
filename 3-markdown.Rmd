@@ -134,6 +134,25 @@ ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=c
 
 ```
 
+```{r fenton_2}
+fenton_el %>% 
+  left_join(class, by = "Mass")-> fenton_el2
+
+ggplot(fenton_el2, aes(x = O, fill = loss))+
+  geom_histogram()+
+  facet_grid(loss~Class)
+
+
+master %>% 
+  left_join(class, by = "Mass") %>% 
+  left_join(meta_elements, by = "Mass")->master2
+
+ggplot(master2, aes(x = O))+
+  geom_histogram()+
+  facet_grid(Treatment~Class)
+
+
+```
 
 
 # goethite
