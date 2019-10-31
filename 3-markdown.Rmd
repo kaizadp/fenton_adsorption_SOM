@@ -247,5 +247,17 @@ ggplot(sorbed_el, aes(x = O, y = counts2, fill = sorption_frac))+
   geom_bar(stat = "identity")+
   facet_wrap(~fenton)
 
- ```
+```
 
+
+```{r sorbed}
+sorbed %>% 
+  dplyr::mutate(adsorbed = case_when(PreGoethite>0 &PostGoethite==0~"sorbed",
+                                   PreGoethite>0&PostGoethite>0~"unbound")) %>% 
+  dplyr::select(Mass,Forest,fenton,sorption_frac,adsorbed, HC,OC)->goethite_temp
+  
+gg_vankrev(goethite_temp[!is.na(goethite_temp$adsorbed),], aes(x = OC, y=HC, color = adsorbed))+
+  facet_wrap(~fenton)
+
+```
+ 
