@@ -1,7 +1,7 @@
 ---
 title: "adsorption_markdown"
 author: "Kaizad Patel"
-output: html_document
+output: word_document
 ---
 
 Run: `r Sys.Date()`
@@ -23,6 +23,8 @@ source("0-packages.R")
 # INPUT
 meta_elements = read.csv(ELEMENTS)
 hcoc = read.csv(HCOC)
+master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
+class = read.csv(CLASS)# <- "fticr/meta_class.csv"
 
 relabund = read.csv(RELATIVE_ABUND)# <- "fticr/fticr_relative_abundance.csv"
 elements = read.csv(SUMMARY_ELEMENTS)# <- "fticr/fticr_summary_elements.csv"
@@ -31,6 +33,7 @@ percentile = read.csv(PERCENTILE)
 fentonloss = read.csv(FENTON_LOSS)
 sorbed = read.csv(GOETHITE_ADSORPTION)
 sorbed_relabund = read.csv(GOETHITE_RELABUND)
+
 ```
 
 # Native SOM and the Fenton reaction
@@ -71,6 +74,7 @@ percentile %>%
 
 gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=perc))+
   scale_color_brewer(palette = "Blues")+
+  geom_point(alpha = 0.5)+
   facet_wrap(~Forest)+
   #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_kp()
@@ -82,8 +86,9 @@ gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=p
 ```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=9, fig.height=5}
 gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC,color=perc))+
   scale_color_brewer(palette = "Reds")+
+  geom_point(alpha = 0.7)+
   facet_wrap(~Forest)+
-  #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_kp()
 
 ```
@@ -175,8 +180,9 @@ gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed,
 
 ```
 
+
 2. contribution of groups
-```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=6}
+```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=7}
 sorbed_relabund %>% 
   group_by(fenton,adsorbed,Class) %>% 
   dplyr::summarise(relabund = mean(relabund)) %>% 
@@ -197,12 +203,51 @@ ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=rela
 #  scale_fill_manual(values = c("#F1A340","#998EC3"))+
   scale_fill_manual(values = c("darkblue","grey80"))+
   
-  ylab("% of total abundance")+
+  ylab("% of total sorbed peaks")+
   xlab("")+
 
   facet_wrap(~fenton)+
   theme_bw()+
   theme_kp()+
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
+
+```
+
+
+3. sorbed peaks only
+
+
+```{r goethite_vk2, fig.cap="native SOM", fig.width=5, fig.height=5}
+# set order of levels
+sorbed %>% 
+  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
+
+gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton, shape = fenton))+
+ # scale_color_manual(values = c("#F1A340","#998EC3"))+
+  #geom_point(stroke=0.5)+
+  scale_color_manual(values = c("red","darkblue"))+
+  scale_shape_manual(values = c(1,16))+
+  #facet_wrap(~fenton)+
+  theme_kp()+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+```
+
+
+```{r goethite_sorbed2, fig.cap="native SOM", fig.width=5, fig.height=6}
+
+ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=relabund, fill=fenton))+
+  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, alpha=0.8,color="black",size=0.7)+
+#  scale_fill_manual(values = c("#B35806","#542788"))+
+#  scale_fill_manual(values = c("#F1A340","#998EC3"))+
+  scale_fill_manual(values = c("grey80","darkblue"))+
+  
+  ylab("% of total sorbed peaks")+
+  xlab("")+
+
+  theme_bw()+
+  theme_kp()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
+
+
 
 ```
