@@ -68,7 +68,7 @@ relabund%>%
 
 ## van krevelen: native SOM
 
-```{r native_van_krev, fig.cap="native SOM", fig.width=9, fig.height=5}
+```{r native_van_krev, fig.cap="native SOM", fig.width=10, fig.height=5}
 master_hcoc %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   master_hcoc
@@ -84,7 +84,7 @@ gg_vankrev(master_hcoc[master_hcoc$Treatment=="PreFenton",], aes(x=OC,y=HC, colo
 
 ## van krevelen: Fenton
 
-```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=9, fig.height=5}
+```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=10, fig.height=5}
 gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, color = Treatment))+
   facet_wrap(~Forest)+
   scale_color_manual(values = "tomato")+
@@ -185,7 +185,7 @@ master2 %>%
 
 1. sorption fractionation
 
-```{r goethite_vk, fig.cap="native SOM", fig.width=9, fig.height=5}
+```{r goethite_vk, fig.cap="native SOM", fig.width=10, fig.height=5}
 # set order of levels
 sorbed %>% 
   dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
