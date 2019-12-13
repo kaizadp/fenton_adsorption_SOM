@@ -172,3 +172,88 @@ sorbed %>%
 gg_vankrev(na.omit(sorbed_initial_temp), aes(x = OC, y=HC, color = sorbed))+
   facet_grid(fenton~Class)
 
+###
+
+## more meta 
+
+fticr_meta = read.csv(FTICR_META)
+
+fticr_meta %>% 
+  mutate(NOSC = 4-(((4*C)+H-(3*N)-(2*O)-(2*S))/C))->
+  fticr_meta
+
+
+master2  = 
+  master %>% 
+  left_join(fticr_meta, by = "Mass")
+
+ggplot(master2[master2$Treatment=="PreFenton"|master2$Treatment=="PostFenton",], 
+       aes(x = NOSC, color = Treatment, fill = Treatment))+
+  geom_histogram(binwidth = 0.1, alpha = 0.2,position = "identity")+
+  facet_wrap(~Class)
+
+
+ggplot(master2[master2$Treatment=="PreFenton"|master2$Treatment=="PostFenton",], 
+       aes(x = KM, y = KMD, color = Treatment, fill = Treatment, shape = Treatment))+
+  geom_point(alpha = 0.5, size = 2)+
+  scale_shape_manual(values = c(1,16))+
+  facet_wrap(~Class)
+
+fentonloss2 = 
+  fentonloss %>% left_join(fticr_meta, by  ="Mass")
+
+ggplot(fentonloss2[!fentonloss2$loss=="conserved",],
+       aes(x = KM, y = KMD, color = loss, fill = loss, shape = loss))+
+  geom_point(alpha = 0.5, size = 2)+
+  scale_shape_manual(values = c(1,16))+
+  facet_wrap(~Class)
+
+  
+ ## peaks lost or gained
+fentonloss %>% 
+  group_by(Mass,loss) %>% 
+  dplyr::summarize(n = mean(Mass)) %>% 
+  left_join(class, by = "Mass")->loss
+
+loss %>% 
+  group_by(Class, loss) %>% 
+  dplyr::summarise(n = n()) %>% 
+  spread(loss, n)
+  
+sorbed2 = 
+  sorbed %>% 
+  left_join(fticr_meta, by = "Mass")
+
+ggplot(sorbed2[sorbed2$adsorbed=="sorbed",], aes(x = NOSC, color = fenton, fill = fenton))+
+  geom_histogram(binwidth = 0.1, alpha = 0.2,position = "identity")+
+  facet_wrap(~Class.x)
+  
+ggplot(sorbed2[sorbed2$adsorbed=="sorbed",], aes(x = O, color = fenton, fill = fenton))+
+  geom_histogram(binwidth = 0.1, alpha = 0.2,position = position_dodge(width=0.7) )+
+  facet_wrap(~Class.x)
+
+
+fenton_el %>% left_join(class, by = "Mass")->fenton_el
+
+ggplot(fenton_el, aes(x = O, color = loss, fill = loss))+
+  geom_histogram(alpha  = 0.2, position = "identity", binwidth = 1)+
+  facet_grid(.~Class)
+       
+
+gg_vankrev(fenton_el, aes(x = OC, y = HC, color = loss, shape = loss))+
+  geom_point(alpha = 0.1)
+
+
+
+
+ggplot(fenton_el, aes(x = Mass, color = loss, fill = loss))+
+  geom_histogram(alpha  = 0.2, position = "identity")+
+  facet_grid(loss~Forest)
+
+
+
+
+       
+
+
+

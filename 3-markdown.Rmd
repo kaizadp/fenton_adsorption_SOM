@@ -72,9 +72,7 @@ percentile %>%
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   percentile
 
-gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=perc))+
-  scale_color_brewer(palette = "Blues")+
-  geom_point(alpha = 0.5)+
+gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC))+
   facet_wrap(~Forest)+
   #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_kp()
@@ -84,11 +82,10 @@ gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC,color=p
 ## van krevelen: Fenton
 
 ```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=9, fig.height=5}
-gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC,color=perc))+
-  scale_color_brewer(palette = "Reds")+
-  geom_point(alpha = 0.7)+
+gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC))+
+  #geom_point(alpha = 0.7)+
   facet_wrap(~Forest)+
-  guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+ # guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_kp()
 
 ```
