@@ -92,6 +92,7 @@ FTICR_GOETHITE <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, inte
 
 # from SCRIPT 2
 PERCENTILE <- "fticr/fticr_raw_percentile.csv" # relative intensities and percentile classification for native and Fenton extracts
+MASTER_HCOC <- "fticr/fticr_master_hcoc.csv"
 RELATIVE_ABUND <- "fticr/fticr_relative_abundance.csv"
 SUMMARY_ELEMENTS <- "fticr/fticr_summary_elements.csv"
 FENTON_LOSS <- "fticr/fticr_fenton_loss.csv"

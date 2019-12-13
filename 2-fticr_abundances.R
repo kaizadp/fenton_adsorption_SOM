@@ -46,46 +46,12 @@ goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and po
       # write.csv(processed, "master.csv", na="")
 # ---------------------------------------------------------------------------- ----
 
-# 1. relative intensity of each formula. and percentile ----
-# this portion of the script will assign the molecules into quartiles based on relative abundance.
-# this classification will be used in Van Krevelen diagrams
-
-# `rawmaster` is the longform master file. calculate relative abundance of each molecule
-
-master %>% 
-  mutate(intensity = as.numeric(intensity)) %>% # set intensity as a numeric variable
-  filter(Treatment == "PreFenton"| Treatment=="PostFenton") %>% # keep only pre-Goethite data. we don't want post-adsorption data
-  na.omit %>% # remove all NA, or it won't calculate
-  dplyr::group_by(Forest, Treatment) %>% 
-  dplyr::mutate(total = sum(intensity)) %>% # add a new column calculating total intensity
-  dplyr::mutate(rel_abund = (intensity/total)*100)-> # calculate relative intensity as a %
-  relative_intensity
-
-# then create a column for quartiles
-relative_intensity %>% 
-  dplyr::group_by(Forest, Treatment) %>% 
-  dplyr::mutate(percentile = ntile(rel_abund, 100)) %>% 
-  mutate(perc = cut(percentile, 
-                    breaks = c(-Inf,25, 50, 75, Inf),
-                    labels = c("lowest 25%", "third 25 %", "second 25 %", "top 25 %")))->
-  relative_intensity_percentile
-
-# remove unnecessary columns
-relative_intensity_percentile %>% 
-  select(-intensity, -total, -percentile)->
-  relative_intensity_percentile
-  
-# merge with the hcoc file
-relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x=T)
-# relative_intensity_percentile = merge(relative_intensity_percentile,hcoc, by = "Mass", all.x = T)
-
-ggplot(relative_intensity_percentile, aes(x = OC,y = HC, color = perc))+
-  geom_point(alpha = 0.6)+
-  scale_color_brewer(palette = "Reds")+
-  facet_grid(Forest~Treatment)
+# 1. create hcoc file for van krevelens ----
+master_hcoc = 
+  master %>% left_join(hcoc, by = "Mass")
 
 ### OUTPUT
-write.csv(relative_intensity_percentile, PERCENTILE, row.names = FALSE)
+write.csv(master_hcoc, MASTER_HCOC, row.names = FALSE)
 # this file will be used for the Van Krevelen plots (preFenton and postFenton)
 
 #
