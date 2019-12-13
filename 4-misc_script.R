@@ -250,7 +250,33 @@ ggplot(fenton_el, aes(x = Mass, color = loss, fill = loss))+
   geom_histogram(alpha  = 0.2, position = "identity")+
   facet_grid(loss~Forest)
 
+fentonloss %>% 
+  left_join(select(meta, Mass, DBE),  by = "Mass") %>% 
+  left_join(class, by = "Mass") %>% 
+  left_join(select(meta, Mass, CRAM), by = "Mass") %>% 
+  dplyr::mutate(CRAM = if_else(CRAM=="CRAM", "CRAM",as.character(NA)))->
+  fentonloss2
 
+ggplot(fentonloss2, aes(x = DBE, color = loss, fill = loss)) +
+  geom_histogram(alpha = 0.1, position = "identity")+
+  facet_wrap(~Class)
+
+
+ggplot(fentonloss2[fentonloss2$CRAM=="CRAM" & fentonloss2$Class=="Lignin-like",], aes(x = O, color = loss, fill = loss)) +
+  geom_histogram(alpha = 0.1, position = "identity", binwidth = 1)+
+  facet_wrap(~loss)
+
+
+sorbed2 = 
+  sorbed %>% 
+  left_join(select(meta, Mass, CRAM), by = "Mass") %>% 
+  left_join(select(meta_elements, Mass, O), by = "Mass")
+
+ggplot(sorbed2[sorbed2$Class=="Lignin-like",],
+       aes(x = CRAM, color = CRAM))+
+  geom_histogram(alpha = 0.1, position = "identity", stat = "count")+
+  facet_wrap(~adsorbed)
+  
 
 
        
