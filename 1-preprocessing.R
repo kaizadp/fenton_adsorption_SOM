@@ -176,19 +176,19 @@ write.csv(raw_data_long,FTICR_RAWMASTER_LONG,row.names = FALSE)
 # summarize by treatment and forest type
 raw_data_long %>%
   group_by(Forest, Treatment,Mass) %>% 
-  dplyr::summarise(intensity = mean(intensity)) -> # calculate avg. intensity
+  dplyr::summarise(intensity = mean(intensity)) %>%   # calculate avg. intensity
+  ungroup %>% 
+  dplyr::mutate(presence = case_when(intensity>0~1)) %>% 
+  dplyr::select(-intensity)->
   data_processed_long
 
 data_processed_long %>% 
-  spread(Treatment,intensity)-> # then spread to create multiple columns
+  spread(Treatment,presence) ->  # then spread to create multiple columns
   data_processed
 
 ### OUTPUT
 write.csv(data_processed_long, FTICR_MASTER_LONG,row.names = FALSE)
 
-data_processed_long %>% 
-  dplyr::group_by(Forest, Treatment) %>% 
-  dplyr::summarise(m = mean(intensity, na.rm = TRUE))
 
 #
 ## create a new file for Fenton ----
@@ -220,7 +220,7 @@ data_processed_long %>%
          fenton = if_else((Treatment=="PreFenton"|Treatment=="PreFentonGoethite"),"PreFenton","PostFenton")) %>% 
   ungroup %>% 
   select(-Treatment) %>% 
-  spread(goethite, intensity)->
+  spread(goethite, presence)->
   data_goethite
   
 
