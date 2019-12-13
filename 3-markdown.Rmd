@@ -22,6 +22,7 @@ source("0-packages.R")
 
 # INPUT
 meta_elements = read.csv(ELEMENTS)
+meta = read.csv(FTICR_META)
 hcoc = read.csv(HCOC)
 master = read.csv(FTICR_MASTER_LONG)# <- "fticr/fticr_master_long.csv" #
 class = read.csv(CLASS)# <- "fticr/meta_class.csv"
@@ -29,7 +30,7 @@ class = read.csv(CLASS)# <- "fticr/meta_class.csv"
 relabund = read.csv(RELATIVE_ABUND)# <- "fticr/fticr_relative_abundance.csv"
 elements = read.csv(SUMMARY_ELEMENTS)# <- "fticr/fticr_summary_elements.csv"
 
-percentile = read.csv(PERCENTILE)
+master_hcoc = read.csv(PERCENTILE)
 fentonloss = read.csv(FENTON_LOSS)
 sorbed = read.csv(GOETHITE_ADSORPTION)
 sorbed_relabund = read.csv(GOETHITE_RELABUND)
@@ -68,25 +69,27 @@ relabund%>%
 ## van krevelen: native SOM
 
 ```{r native_van_krev, fig.cap="native SOM", fig.width=9, fig.height=5}
-percentile %>% 
+master_hcoc %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
-  percentile
+  master_hcoc
 
-gg_vankrev(percentile[percentile$Treatment=="PreFenton",], aes(x=OC,y=HC))+
+gg_vankrev(master_hcoc[master_hcoc$Treatment=="PreFenton",], aes(x=OC,y=HC, color = Treatment))+
   facet_wrap(~Forest)+
+  scale_color_manual(values = "dodgerblue1")+
   #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
-  theme_kp()
+  theme_kp()+
+  theme(legend.position = "none")
 
 ```
 
 ## van krevelen: Fenton
 
 ```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=9, fig.height=5}
-gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC))+
-  #geom_point(alpha = 0.7)+
+gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, color = Treatment))+
   facet_wrap(~Forest)+
- # guides(colour = guide_legend(override.aes = list(alpha = 1)))+
-  theme_kp()
+  scale_color_manual(values = "tomato")+
+  theme_kp()+
+  theme(legend.position = "none")
 
 ```
 
@@ -97,19 +100,20 @@ gg_vankrev(percentile[percentile$Treatment=="PostFenton",], aes(x=OC,y=HC))+
 1. fenton loss/gained
 ```{r fenton, fig.cap="fenton loss", fig.width=5, fig.height=5}
 
-gg_vankrev(fentonloss[!fentonloss$loss=="conserved",], aes(x = OC, y = HC, color = loss, shape=loss))+
+gg_vankrev(fentonloss[fentonloss$loss=="lost"|fentonloss$loss=="gained",], 
+           aes(x = OC, y = HC, color = loss, shape=loss))+
   scale_shape_manual(values = c(16,1))+
   scale_color_brewer(palette = "Dark2")+
   theme_kp()
 ```
 
 
-2. fenton vs. oxygens
+2. fenton vs. oxygens - loss
 
 ```{r fenton_oxygen2, fig.cap="fenton  vs. no. of oxygens", fig.width=5, fig.height=5}
 fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
 
-fenton_el %>% 
+fentonloss %>% 
   group_by(loss,O) %>% 
   dplyr::summarize(counts = n()) %>% 
   dplyr::mutate(counts = as.numeric(counts))%>% 
@@ -119,7 +123,8 @@ fenton_el %>%
                 counts2 = if_else(loss == "gained",counts,-1*counts))->
   loss_summary2
 
-ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=counts2, fill = loss))+
+ggplot(loss_summary2[loss_summary2$loss=="lost"|loss_summary2$loss=="gained",], 
+       aes(x=as.factor(O), y=counts2, fill = loss))+
  geom_segment(x = 13.5, y = 0, xend = 13.5, yend = 140,color="black",linetype="longdash")+
   geom_segment(x = 8.5, y = 0, xend = 8.5, yend = -190,color="black",linetype="longdash")+
   annotate("text", label = "median 13", x = 13.5, y = 150)+ 
@@ -136,8 +141,8 @@ ggplot(loss_summary2[!loss_summary2$loss=="conserved",], aes(x=as.factor(O), y=c
 
 ```
 
-```{r fenton_2}
-fenton_el %>% 
+```{r fenton_2, include=FALSE}
+fentonloss %>% 
   left_join(class, by = "Mass")-> fenton_el2
 
 ggplot(fenton_el2, aes(x = O, fill = loss))+
@@ -156,6 +161,25 @@ ggplot(master2, aes(x = O))+
 
 ```
 
+3. fenton vs. oxygens by class
+
+```{r, include=FALSE}
+ggplot(master2[master2$Treatment=="PreFenton"|master2$Treatment=="PostFenton",], 
+       aes(x = O, color = Treatment, fill = Treatment))+
+  geom_histogram(binwidth = 1, alpha = 0.2, position = "identity")+
+  facet_wrap(~Class)
+
+master2 %>% 
+  group_by(Mass,Treatment, Class) %>% 
+  dplyr::summarise(O = mean(O)) %>% 
+  ungroup %>% 
+  group_by(Treatment, Class) %>% 
+  dplyr::summarise(medianO = median(O)) %>% 
+  spread(Treatment, medianO)
+  
+
+```
+
 
 # goethite
 
@@ -166,20 +190,19 @@ ggplot(master2, aes(x = O))+
 sorbed %>% 
   dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
 
-gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed, shape = adsorbed))+
+gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
- scale_color_manual(values = c("darkblue","grey69"))+
-  scale_shape_manual(values = c(16,1))+
+ scale_color_manual(values = c("grey40","darkblue"))+
   facet_wrap(~fenton)+
   theme_kp()+
-  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+  theme(legend.position = "none")
 
 
 ```
 
 
 2. contribution of groups
-```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=7}
+```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=7, include=FALSE}
 sorbed_relabund %>% 
   group_by(fenton,adsorbed,Class) %>% 
   dplyr::summarise(relabund = mean(relabund)) %>% 
@@ -214,7 +237,7 @@ ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=rela
 3. sorbed peaks only
 
 
-```{r goethite_vk2, fig.cap="native SOM", fig.width=5, fig.height=5}
+```{r goethite_vk2, fig.cap="native SOM", fig.width=5, fig.height=5, include=FALSE}
 # set order of levels
 sorbed %>% 
   dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
@@ -232,6 +255,20 @@ gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton,
 
 ```{r goethite_sorbed2, fig.cap="native SOM", fig.width=5, fig.height=6}
 
+sorbed_relabund %>% 
+  group_by(fenton,adsorbed,Class) %>% 
+  dplyr::summarise(relabund = mean(relabund)) %>% 
+  ungroup %>% 
+  dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton")), 
+                  Class = factor(Class, levels = c("Condensed Ar",
+                                                 "Aromatic",
+                                                 "Lignin-like",
+                                                 "Carbohydrate-like",
+                                                 "Aliphatic-noN",
+                                                 "Aliphatic+N")))->
+  sorbed_relabund2
+
+
 ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=relabund, fill=fenton))+
   geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, alpha=0.8,color="black",size=0.7)+
 #  scale_fill_manual(values = c("#B35806","#542788"))+
@@ -244,7 +281,4 @@ ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=re
   theme_bw()+
   theme_kp()+
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
-
-
-
 ```
