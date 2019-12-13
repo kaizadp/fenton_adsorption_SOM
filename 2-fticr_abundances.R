@@ -90,9 +90,8 @@ write.csv(raw_groups,RELATIVE_ABUND, row.names = FALSE)
 
 ## Elements ----
 
-master_el = merge(master, elements, by = "Mass")
-
-master_el %>% 
+master %>% 
+  left_join(elements, by = "Mass") %>% 
   filter(Treatment=="PreFenton"| Treatment=="PostFenton") %>%  # choose only the preGoethite samples
   gather(element, el_count, C:P) %>% 
 # replace all 0 by NA and then remove NA to help with calculations  
@@ -137,7 +136,7 @@ rawmaster %>%
 ### 2.1.1 peaks common to both forests ----
 master %>% 
   filter(Treatment=="PreFenton") %>% 
-  filter(intensity>0) %>% 
+  filter(presence>0) %>% 
   group_by(Mass) %>% 
   dplyr::summarise(counts = n())->peakcounts_forest
 
@@ -181,7 +180,10 @@ rawmaster %>%
 # FENTON relative abundance lost vs. gained ----
 # merge `fenton` file with `relative_intensity_percentile`
 
-fenton_loss = merge(fenton, relative_intensity_percentile, by = c("Mass", "Forest"))
+fenton_loss = 
+  fenton %>% 
+  left_join(hcoc, by = "Mass") %>% 
+  left_join(select(elements, Mass, O), by = "Mass")
 
 ### OUTPUT
 write.csv(fenton_loss, FENTON_LOSS)
@@ -215,7 +217,7 @@ write.csv(fenton_loss, FENTON_LOSS)
       ## 
 #
 
-## .2 relative strength of sorption ----
+## .2 sorbed vs. unbound ----
 
 goethite %>% 
   mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton"))) %>% # order the levels
@@ -242,9 +244,6 @@ write.csv(goethite_sorption, GOETHITE_ADSORPTION, row.names = FALSE)
 # first, subset the goethite_relabund file
 
 goethite_sorption %>% 
-  left_join(class,by="Mass")->goethite_class
-
-goethite_class %>% 
   group_by(Forest,fenton,adsorbed,Class) %>% 
   dplyr::summarize(compounds = n()) %>% # this gives total intensity for each group
   # in the same command, we will also create a column for total intensity
