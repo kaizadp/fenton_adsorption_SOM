@@ -1,7 +1,7 @@
 ---
 title: "adsorption_markdown"
 author: "Kaizad Patel"
-output: word_document
+output: html_document
 ---
 
 Run: `r Sys.Date()`
@@ -19,7 +19,6 @@ library(wesanderson)
 
 ```{r input}
 source("0-packages.R")
-
 # INPUT
 meta_elements = read.csv(ELEMENTS)
 meta = read.csv(FTICR_META)
@@ -63,6 +62,33 @@ relabund%>%
                                                  "Aliphatic+N"))) %>% 
   spread(sp, val) %>% 
   knitr::kable(align = "r")
+
+print("number of peaks")
+
+master %>% 
+  group_by(Forest, Treatment) %>% 
+  dplyr::summarise(peaks = n()) %>% 
+  knitr::kable(align = "r")
+  
+  
+```
+
+## concentrations
+```{r}
+source("4-doc_conc.R")
+print("concentrations, mg/L")
+conc_summary %>% 
+  dplyr::mutate(wsoc_mg_L = paste(round(doc_mg_L,0),"\U00B1",round(doc_se,1))) %>% 
+  dplyr::select(Forest, Fenton, wsoc_mg_L) %>% 
+  knitr::kable(align = "r")
+
+print("adsorbed C, mg/g goethite")
+conc_summary %>% 
+  dplyr::mutate(adsorbed = paste(round(adsorbed_mgg,1),"\U00B1",round(adsorbed_se,1))) %>% 
+  dplyr::select(Forest, Fenton, adsorbed) %>% 
+  knitr::kable(align = "r")  
+
+
 ```
 
 
@@ -100,20 +126,27 @@ gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, col
 1. fenton loss/gained
 ```{r fenton, fig.cap="fenton loss", fig.width=5, fig.height=5}
 
-gg_vankrev(fentonloss[fentonloss$loss=="lost"|fentonloss$loss=="gained",], 
+fentonloss2 = fentonloss %>% 
+  group_by(Mass, loss) %>% 
+  dplyr::summarize(n = n()) %>% 
+  left_join(select(meta_elements, Mass,O), by = "Mass") %>% 
+  left_join(hcoc, by = "Mass")
+
+gg_vankrev(fentonloss2[fentonloss2$loss=="lost"|fentonloss2$loss=="gained",], 
            aes(x = OC, y = HC, color = loss, shape=loss))+
   scale_shape_manual(values = c(16,1))+
   scale_color_brewer(palette = "Dark2")+
-  theme_kp()
+  theme_kp()+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
 ```
 
 
 2. fenton vs. oxygens - loss
 
 ```{r fenton_oxygen2, fig.cap="fenton  vs. no. of oxygens", fig.width=5, fig.height=5}
-fenton_el = merge(fentonloss, meta_elements, by = "Mass", all.x=TRUE)
 
-fentonloss %>% 
+fentonloss2 %>% 
   group_by(loss,O) %>% 
   dplyr::summarize(counts = n()) %>% 
   dplyr::mutate(counts = as.numeric(counts))%>% 
@@ -142,7 +175,7 @@ ggplot(loss_summary2[loss_summary2$loss=="lost"|loss_summary2$loss=="gained",],
 ```
 
 ```{r fenton_2, include=FALSE}
-fentonloss %>% 
+fentonloss2 %>% 
   left_join(class, by = "Mass")-> fenton_el2
 
 ggplot(fenton_el2, aes(x = O, fill = loss))+
@@ -176,7 +209,24 @@ master2 %>%
   group_by(Treatment, Class) %>% 
   dplyr::summarise(medianO = median(O)) %>% 
   spread(Treatment, medianO)
-  
+```
+
+4. fenton peaks lost
+
+```{r}
+fentonloss %>% 
+  group_by(Mass,loss) %>% 
+  dplyr::summarise(n = n()) %>% 
+  na_if(.,"") %>% 
+  na.omit() %>% 
+  left_join(class, by = "Mass") %>% 
+  group_by(loss, Class) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ungroup %>% 
+  select(loss, Class, count) %>% 
+  spread(loss, count) %>% 
+  knitr::kable(align = "r")  
+
 
 ```
 
@@ -188,6 +238,9 @@ master2 %>%
 ```{r goethite_vk, fig.cap="native SOM", fig.width=10, fig.height=5}
 # set order of levels
 sorbed %>% 
+  group_by(Mass,fenton,adsorbed, HC, OC, Class) %>% 
+  dplyr::summarise(n = n()) %>% 
+  ungroup %>% 
   dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
 
 gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+

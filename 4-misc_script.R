@@ -281,5 +281,42 @@ ggplot(sorbed2[sorbed2$Class=="Lignin-like",],
 
        
 
+### comparing gained molecules with sorbed
 
+combined = 
+  fentonloss %>% 
+  left_join(select(sorbed,-HC,-OC), by = c("Mass","Forest")) %>% 
+  group_by(Mass,loss,adsorbed, HC,OC,O,Class) %>% 
+  dplyr::summarise(n= n()) %>% 
+  na_if(.,"")
+
+ggplot(combined[combined$adsorbed=="unbound",], aes(x = O, color = adsorbed, fill = adsorbed))+
+  geom_histogram(alpha = 0.2, position = "identity", binwidth=1)+
+  facet_grid(Class~loss)
+
+combined %>% 
+  group_by(loss) %>% 
+  dplyr::summarise(total_peaks = n())
+  
+combined %>% 
+  group_by(loss) %>% 
+  filter(!adsorbed=="new") %>% 
+  dplyr::summarise(total_peaks = n())
+
+combined %>% 
+  group_by(loss, adsorbed) %>% 
+  dplyr::summarise(total = n()) %>% 
+  spread(adsorbed, total)
+
+
+
+
+
+
+
+
+  
+  
+  
+  
 
