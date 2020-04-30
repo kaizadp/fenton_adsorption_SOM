@@ -15,10 +15,13 @@ knitr::opts_chunk$set(echo=FALSE,message=FALSE,warning=FALSE,
                       )
 
 library(wesanderson)
+# devtools::install_github("kaizadp/soilpalettes")
+library(soilpalettes)
 ```
 
 ```{r input}
 source("0-packages.R")
+library(soilpalettes)
 # INPUT
 meta_elements = read.csv(ELEMENTS)
 meta = read.csv(FTICR_META)
@@ -92,9 +95,9 @@ conc_summary %>%
 ```
 
 
-## van krevelen: native SOM
+#### van krevelen: native SOM
 
-```{r native_van_krev, fig.cap="native SOM", fig.width=10, fig.height=5}
+```{r native_van_krev, fig.cap="native SOM", fig.width=10, fig.height=5, include=FALSE}
 master_hcoc %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   master_hcoc
@@ -105,26 +108,44 @@ gg_vankrev(master_hcoc[master_hcoc$Treatment=="PreFenton",], aes(x=OC,y=HC, colo
   #guides(colour = guide_legend(override.aes = list(alpha = 1)))+
   theme_kp()+
   theme(legend.position = "none")
-
 ```
 
-## van krevelen: Fenton
+#### van krevelen: Fenton
 
-```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=10, fig.height=5}
+```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=10, fig.height=5, include=FALSE}
 gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, color = Treatment))+
   facet_wrap(~Forest)+
   scale_color_manual(values = "tomato")+
   theme_kp()+
   theme(legend.position = "none")
+```
+
+
+#### van krevelen: combined 
+```{r vk_fenton_trt, fig.width=9, fig.height=5}
+master_hcoc %>% 
+  mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
+  master_hcoc
+
+gg_vankrev(master_hcoc, aes(x=OC,y=HC, color = Forest))+
+  facet_grid(.~Treatment)+
+  stat_ellipse(level = 0.95)+
+  #scale_color_manual(values = c("dodgerblue1","tomato"))+
+  scale_color_manual(values = soil_palette("podzol",2))+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+  theme_kp()+
+  
+  annotate("text", label = "aliphatic", x = 1.1, y = 2.0)+
+  annotate("text", label = "lignin-like", x = 1.1, y = 1.0)+
+  annotate("text", label = "aromatic", x = 1.1, y = 0.7)+
+  annotate("text", label = "condensed \n aromatic", x = 1.1, y = 0.2)
 
 ```
 
 
-
 ## fenton 
 
-1. fenton loss/gained
-```{r fenton, fig.cap="fenton loss", fig.width=5, fig.height=5}
+```{r fenton_loss, fig.width=5, fig.height=5}
 
 fentonloss2 = fentonloss %>% 
   group_by(Mass, loss) %>% 
@@ -132,19 +153,24 @@ fentonloss2 = fentonloss %>%
   left_join(select(meta_elements, Mass,O), by = "Mass") %>% 
   left_join(hcoc, by = "Mass")
 
-gg_vankrev(fentonloss2[fentonloss2$loss=="lost"|fentonloss2$loss=="gained",], 
-           aes(x = OC, y = HC, color = loss, shape=loss))+
-  scale_shape_manual(values = c(16,1))+
-  scale_color_brewer(palette = "Dark2")+
+gg_loss =
+  gg_vankrev(fentonloss2[fentonloss2$loss=="lost"|fentonloss2$loss=="gained",], 
+           aes(x = OC, y = HC, color = loss))+
+  #scale_shape_manual(values = c(16,1))+
+  #scale_color_brewer(palette = "Dark2")+
+  stat_ellipse(level = 0.95)+
+  scale_color_manual(values = soil_palette("rendoll",2))+
+
   theme_kp()+
   guides(colour = guide_legend(override.aes = list(alpha = 1)))
 
+gg_loss2 = 
+  ggMarginal(gg_loss,groupColour = TRUE,groupFill = TRUE, size = 10)
+
+
 ```
 
-
-2. fenton vs. oxygens - loss
-
-```{r fenton_oxygen2, fig.cap="fenton  vs. no. of oxygens", fig.width=5, fig.height=5}
+```{r fenton_oxygen2, fig.width=5, fig.height=5}
 
 fentonloss2 %>% 
   group_by(loss,O) %>% 
@@ -156,7 +182,8 @@ fentonloss2 %>%
                 counts2 = if_else(loss == "gained",counts,-1*counts))->
   loss_summary2
 
-ggplot(loss_summary2[loss_summary2$loss=="lost"|loss_summary2$loss=="gained",], 
+gg_loss_o =
+  ggplot(loss_summary2[loss_summary2$loss=="lost"|loss_summary2$loss=="gained",], 
        aes(x=as.factor(O), y=counts2, fill = loss))+
  geom_segment(x = 13.5, y = 0, xend = 13.5, yend = 140,color="black",linetype="longdash")+
   geom_segment(x = 8.5, y = 0, xend = 8.5, yend = -190,color="black",linetype="longdash")+
@@ -164,13 +191,24 @@ ggplot(loss_summary2[loss_summary2$loss=="lost"|loss_summary2$loss=="gained",],
   annotate("text", label = "median 8", x = 8.5, y = -200)+
   
   geom_bar(stat = "identity", alpha=0.8)+
-  scale_fill_brewer(palette="Dark2")+
-  
+  #scale_fill_brewer(palette="Dark2")+
+  scale_fill_manual(values = soil_palette("rendoll",2))+
+
   scale_x_discrete(breaks = c("0", "5","10","15","20","25","30"))+
   ylab("number of peaks")+
   xlab("number of O")+
   
   theme_kp()
+
+```
+
+
+```{r fenton_combined, fig.width=9, fig.height=5}
+library(patchwork)
+gg_loss2 + gg_loss_o
+
+library(cowplot)
+plot_grid(gg_loss2, gg_loss_o, labels = c('A', 'B'), label_size = 12, axis = "bl", align = "hv")
 
 ```
 
@@ -231,31 +269,35 @@ fentonloss %>%
 ```
 
 
-# goethite
+## goethite
 
-1. sorption fractionation
+### 1. sorption fractionation
 
-```{r goethite_vk, fig.cap="native SOM", fig.width=10, fig.height=5}
+```{r goethite_sorbed}
 # set order of levels
-sorbed %>% 
+sorbed = 
+  sorbed %>% 
   group_by(Mass,fenton,adsorbed, HC, OC, Class) %>% 
   dplyr::summarise(n = n()) %>% 
   ungroup %>% 
-  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
+  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))
 
-gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
+```
+
+VK - adsorbed and unbound peaks  
+
+```{r sorbed_vk1, fig.width=9, fig.height=5}
+gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
  scale_color_manual(values = c("grey40","darkblue"))+
   facet_wrap(~fenton)+
   theme_kp()+
   theme(legend.position = "none")
-
-
 ```
 
+contribution of groups  
 
-2. contribution of groups
-```{r sorbed_groups, fig.cap="", fig.width=9, fig.height=7, include=FALSE}
+```{r sorbed_relabund}
 sorbed_relabund %>% 
   group_by(fenton,adsorbed,Class) %>% 
   dplyr::summarise(relabund = mean(relabund)) %>% 
@@ -268,10 +310,12 @@ sorbed_relabund %>%
                                                  "Aliphatic-noN",
                                                  "Aliphatic+N")))->
   sorbed_relabund2
+```
 
-
+```{r sorbed_groups, fig.width=9, fig.height=7, include=FALSE}
 ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=relabund, fill=adsorbed))+
-  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, alpha=0.8,color="black",size=0.7)+
+  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5,
+           alpha=0.8,color="black",size=0.7)+
 #  scale_fill_manual(values = c("#B35806","#542788"))+
 #  scale_fill_manual(values = c("#F1A340","#998EC3"))+
   scale_fill_manual(values = c("darkblue","grey80"))+
@@ -287,47 +331,34 @@ ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=rela
 ```
 
 
-3. sorbed peaks only
+### sorbed peaks only
 
 
-```{r goethite_vk2, fig.cap="native SOM", fig.width=5, fig.height=5, include=FALSE}
+```{r goethite_vk2, fig.width=5, fig.height=5}
 # set order of levels
-sorbed %>% 
-  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
-
-gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton, shape = fenton))+
+gg_sorbed = 
+  gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
-  #geom_point(stroke=0.5)+
-  scale_color_manual(values = c("red","darkblue"))+
-  scale_shape_manual(values = c(1,16))+
+ #scale_color_manual(values = c("grey40","darkblue"))+
+  scale_color_manual(values = soil_palette("redox",2))+
   #facet_wrap(~fenton)+
-  theme_kp()+
-  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+  stat_ellipse()+
+  theme_kp()
+
+ggMarginal(gg_sorbed,groupColour = TRUE,groupFill = TRUE, size = 10)
+
 ```
 
 
-```{r goethite_sorbed2, fig.cap="native SOM", fig.width=5, fig.height=6}
-
-sorbed_relabund %>% 
-  group_by(fenton,adsorbed,Class) %>% 
-  dplyr::summarise(relabund = mean(relabund)) %>% 
-  ungroup %>% 
-  dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton")), 
-                  Class = factor(Class, levels = c("Condensed Ar",
-                                                 "Aromatic",
-                                                 "Lignin-like",
-                                                 "Carbohydrate-like",
-                                                 "Aliphatic-noN",
-                                                 "Aliphatic+N")))->
-  sorbed_relabund2
-
-
+```{r goethite_sorbed2, fig.width=5, fig.height=6}
 ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=relabund, fill=fenton))+
-  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, alpha=0.8,color="black",size=0.7)+
+  geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, 
+           alpha=0.8,color="black",size=0.7)+
 #  scale_fill_manual(values = c("#B35806","#542788"))+
 #  scale_fill_manual(values = c("#F1A340","#998EC3"))+
-  scale_fill_manual(values = c("grey80","darkblue"))+
-  
+#  scale_fill_manual(values = c("grey80","darkblue"))+
+    scale_fill_manual(values = soil_palette("redox",2))+
+
   ylab("% of total sorbed peaks")+
   xlab("")+
 
@@ -335,3 +366,7 @@ ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=re
   theme_kp()+
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
 ```
+
+
+
+

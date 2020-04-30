@@ -92,7 +92,8 @@ meta_RAW %>%
                 AI_mod = `AI.mod`) %>% 
   mutate(Mass = round(Mass,4), # round Mass to 4 decimal places. do this for all files so it is easy to merge later 
          HC = round(HC,2),
-         OC = round(OC,2))%>% 
+         OC = round(OC,2),
+         NOSC =  round(4-(((4*C)+H-(3*N)-(2*O)-(2*S))/C),4))%>% 
   distinct()-> # this removes duplicates
   meta_RAW_distinct
 
