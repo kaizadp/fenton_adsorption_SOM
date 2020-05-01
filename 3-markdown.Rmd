@@ -162,6 +162,8 @@ gg_loss =
   scale_color_manual(values = soil_palette("rendoll",2))+
 
   theme_kp()+
+  theme(legend.position = c(0.7, 0.92),
+        legend.direction = "horizontal")+
   guides(colour = guide_legend(override.aes = list(alpha = 1)))
 
 gg_loss2 = 
@@ -198,12 +200,15 @@ gg_loss_o =
   ylab("number of peaks")+
   xlab("number of O")+
   
-  theme_kp()
+  theme_kp()+
+  theme(legend.position = c(0.8, 0.3))+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
 
 ```
 
 
-```{r fenton_combined, fig.width=9, fig.height=5}
+```{r fenton_combined, fig.width=9, fig.height=4}
 library(patchwork)
 gg_loss2 + gg_loss_o
 
@@ -292,7 +297,10 @@ gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed)
  scale_color_manual(values = c("grey40","darkblue"))+
   facet_wrap(~fenton)+
   theme_kp()+
-  theme(legend.position = "none")
+  theme(legend.position = c(0.7, 0.92),
+        legend.direction = "horizontal")+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
 ```
 
 contribution of groups  
@@ -336,14 +344,18 @@ ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=rela
 
 ```{r goethite_vk2, fig.width=5, fig.height=5}
 # set order of levels
-gg_sorbed = 
+gg_sorbed =
   gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
  #scale_color_manual(values = c("grey40","darkblue"))+
   scale_color_manual(values = soil_palette("redox",2))+
   #facet_wrap(~fenton)+
   stat_ellipse()+
-  theme_kp()
+  theme_kp()+
+  theme(legend.position = c(0.65, 0.92),
+        legend.direction = "horizontal")+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
 
 ggMarginal(gg_sorbed,groupColour = TRUE,groupFill = TRUE, size = 10)
 
@@ -364,7 +376,10 @@ ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=re
 
   theme_bw()+
   theme_kp()+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))+
+  theme(legend.position = c(0.8, 0.8))+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
 ```
 
 
