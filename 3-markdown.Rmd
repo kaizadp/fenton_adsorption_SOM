@@ -208,7 +208,7 @@ gg_loss_o =
 ```
 
 
-```{r fenton_combined, fig.width=9, fig.height=4}
+```{r fenton_loss_combined, fig.width=9, fig.height=4}
 library(patchwork)
 gg_loss2 + gg_loss_o
 
@@ -280,19 +280,19 @@ fentonloss %>%
 
 ```{r goethite_sorbed}
 # set order of levels
-sorbed = 
+sorbed2 = 
   sorbed %>% 
   group_by(Mass,fenton,adsorbed, HC, OC, Class) %>% 
   dplyr::summarise(n = n()) %>% 
-  ungroup %>% 
-  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))
+  ungroup 
+  #dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))
 
 ```
 
 VK - adsorbed and unbound peaks  
 
 ```{r sorbed_vk1, fig.width=9, fig.height=5}
-gg_vankrev(sorbed[!sorbed$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed))+
+gg_vankrev(sorbed2[!sorbed2$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
  scale_color_manual(values = c("grey40","darkblue"))+
   facet_wrap(~fenton)+
@@ -310,7 +310,7 @@ sorbed_relabund %>%
   group_by(fenton,adsorbed,Class) %>% 
   dplyr::summarise(relabund = mean(relabund)) %>% 
   ungroup %>% 
-  dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton","PostFenton")), 
+  dplyr::mutate( #fenton = factor(fenton, levels = c("PreFenton","PostFenton")), 
                   Class = factor(Class, levels = c("Condensed Ar",
                                                  "Aromatic",
                                                  "Lignin-like",
@@ -348,7 +348,8 @@ gg_sorbed =
   gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
  #scale_color_manual(values = c("grey40","darkblue"))+
-  scale_color_manual(values = soil_palette("redox",2))+
+  scale_color_manual(values = soil_palette("redox",2),
+                     breaks = c("PreFenton", "PostFenton"))+
   #facet_wrap(~fenton)+
   stat_ellipse()+
   theme_kp()+
@@ -362,14 +363,15 @@ ggMarginal(gg_sorbed,groupColour = TRUE,groupFill = TRUE, size = 10)
 ```
 
 
-```{r goethite_sorbed2, fig.width=5, fig.height=6}
+```{r goethite_groups2, fig.width=5, fig.height=6}
 ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=relabund, fill=fenton))+
   geom_bar(stat="identity", position = position_dodge(width=0.7),width=0.5, 
            alpha=0.8,color="black",size=0.7)+
 #  scale_fill_manual(values = c("#B35806","#542788"))+
 #  scale_fill_manual(values = c("#F1A340","#998EC3"))+
 #  scale_fill_manual(values = c("grey80","darkblue"))+
-    scale_fill_manual(values = soil_palette("redox",2))+
+    scale_fill_manual(values = soil_palette("redox",2),
+                      breaks = c("PreFenton", "PostFenton"))+
 
   ylab("% of total sorbed peaks")+
   xlab("")+
