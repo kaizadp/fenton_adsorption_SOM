@@ -29,6 +29,7 @@ library(car)
 library(agricolae)
 library(googlesheets)
 library(gsheet)
+library(soilpalettes)
 
 # DATA_DIR               <- "data/"
 # OUTPUT_DIR		         <- "outputs/"
@@ -44,7 +45,7 @@ theme_kp <- function() {  # this for all the elements common across plots
           panel.border = element_rect(color="black",size=1.5, fill = NA),
           
           plot.title = element_text(hjust = 0.05, size = 14),
-          axis.text = element_text(size = 14, face = "bold", color = "black"),
+          axis.text = element_text(size = 14, color = "black"),
           axis.title = element_text(size = 14, face = "bold", color = "black"),
           
           # formatting for facets
@@ -60,7 +61,7 @@ theme_kp <- function() {  # this for all the elements common across plots
 gg_vankrev <- function(data,mapping){
   ggplot(data,mapping)+
 # plot points
-    geom_point(size=2, alpha = 0.4)+ # set size and transparency
+    geom_point(size=2.5, alpha = 0.4, stroke = 1)+ # set size and transparency
 # axis labels
     ylab("H/C")+
     xlab("O/C")+
@@ -69,7 +70,7 @@ gg_vankrev <- function(data,mapping){
     ylim(0,2.5)+
 # add boundary lines for Van Krevelen regions
     geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
-    geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
+    #geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
     geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
     geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")
 }
@@ -92,6 +93,7 @@ FTICR_GOETHITE <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, inte
 
 # from SCRIPT 2
 PERCENTILE <- "fticr/fticr_raw_percentile.csv" # relative intensities and percentile classification for native and Fenton extracts
+MASTER_HCOC <- "fticr/fticr_master_hcoc.csv"
 RELATIVE_ABUND <- "fticr/fticr_relative_abundance.csv"
 SUMMARY_ELEMENTS <- "fticr/fticr_summary_elements.csv"
 FENTON_LOSS <- "fticr/fticr_fenton_loss.csv"
