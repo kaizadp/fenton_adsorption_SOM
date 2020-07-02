@@ -2,17 +2,18 @@
 
 source("0-packages.R")
 
-### all input files are in `stomfiles` folder
+### all input files are in `data/fticr/` folder
 # we do not have separate files for smaple data vs. meta data, so first we need to create the separate files
 
 
 ## INPUT FILES ----
-HW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonHWAdsorp-Master.csv") 
-HW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFenHWAdsorp-Master.csv") #needs cleaning
-SW_PREFENTONGOETHITE = read.csv("stomfiles/PreFentonSWAdsorp.csv") #ok
-SW_POSTFENTONGOETHITE = read.csv("stomfiles/PostFentonSWAdsorp.csv")
+HW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonHWAdsorp-Master.csv") 
+HW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFenHWAdsorp-Master.csv") #needs cleaning
+SW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonSWAdsorp.csv") #ok
+SW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFentonSWAdsorp.csv")
 
 SOIL_KEY = read.csv("data/soil_key.csv")
+
 ## INPUT -- META ----
 
 # because different files have potentially different sets of peaks, we want to import all four files, get the relevant columns, combine, and then remove duplicates.
