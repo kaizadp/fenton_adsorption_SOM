@@ -1,6 +1,6 @@
 # 1-preprocessing
 
-source("0-packages.R")
+source("code/0-packages.R")
 
 ### all input files are in `data/fticr/` folder
 # we do not have separate files for smaple data vs. meta data, so first we need to create the separate files
@@ -8,15 +8,16 @@ source("0-packages.R")
 
 ## INPUT FILES ----
 HW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonHWAdsorp-Master.csv") 
-HW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFenHWAdsorp-Master.csv") #needs cleaning
-SW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonSWAdsorp.csv") #ok
+HW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFenHWAdsorp-Master.csv") 
+SW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonSWAdsorp.csv")
 SW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFentonSWAdsorp.csv")
 
 SOIL_KEY = read.csv("data/soil_key.csv")
 
 ## INPUT -- META ----
 
-# because different files have potentially different sets of peaks, we want to import all four files, get the relevant columns, combine, and then remove duplicates.
+# because different files have potentially different sets of peaks, 
+# we want to import all four files, get the relevant columns, combine, and then remove duplicates.
 # this will ensure we have captured all the necessary peaks for the meta-data file
 # tiring, yes
 
@@ -161,17 +162,6 @@ raw_data_long = merge(SOIL_KEY,RAW_DATA2, by = "code")
 write.csv(raw_data_long,FTICR_RAWMASTER_LONG,row.names = FALSE)
 
 
-
-## compare meta files from raw vs. master formularity NOT DOING THIS NOW
-    # meta_processed = read.csv(FTICR_META)
-    # 
-    # meta_processed2 = meta_processed %>% 
-    #   select(Mass, El_comp, Class, HC, OC)
-    # meta_RAW_distinct2 = meta_RAW_distinct %>% 
-    #   select(Mass, HC, OC, Class)
-    # 
-    # meta_combined = merge(meta_processed2, meta_RAW_distinct2, by = "Mass")
-
 #
 
 ## PROCESSING DATA FILES ----
@@ -224,12 +214,6 @@ data_processed_long %>%
   select(-Treatment) %>% 
   spread(goethite, presence)->
   data_goethite
-  
-
-    # data_goethite %>% 
-    #   dplyr::group_by(Forest, fenton) %>% 
-    #   dplyr::summarise(preg = mean(PreGoethite, na.rm = TRUE),
-    #                    postg = mean(PostGoethite, na.rm = TRUE))
 
 ### OUTPUT
 write.csv(data_goethite,FTICR_GOETHITE,na="",row.names = FALSE)
@@ -237,38 +221,4 @@ write.csv(data_goethite,FTICR_GOETHITE,na="",row.names = FALSE)
 
 # we need to create columns for adsorbed vs. unbound. 
 # we will do that in the `abundance` script, because we need to calculate relative abundances for that
-
-# ---------------------------------------------------------------------------- ---- 
-
-### the code below was from the old script. not sure why I did this roundabout crap
-
-  # # split the MASTER file into two files, for pre-Goethite vs. post-Goethite. gather and add columns indicating whether pre or post F. and then combine. 
-  # fticr_data_2 %>% 
-  #   select(Mass, Forest, PreFenton,PostFenton)->
-  #   fticr_data_preg
-  # 
-  # fticr_data_2 %>% 
-  #   select(Mass, Forest, PreFentonGoethite,PostFentonGoethite)->
-  #   fticr_data_postg
-  # 
-  # fticr_data_preg %>% 
-  #   gather(Fenton, PreGoethite, PreFenton:PostFenton)->
-  #   fticr_data_preg2
-  # 
-  # fticr_data_postg %>% 
-  #   dplyr::rename(PreFenton = PreFentonGoethite) %>% 
-  #   dplyr::rename(PostFenton = PostFentonGoethite) %>% 
-  #   gather(Fenton, PostGoethite, PreFenton:PostFenton)->
-  #   fticr_data_postg2
-  # 
-  # #fticr_data_goethite2 = cbind(fticr_data_preg2,fticr_data_postg2)
-  # fticr_data_goethite = merge(fticr_data_preg2,fticr_data_postg2)
-  # # `cbind` keeps duplicate columns, `merge` deletes duplicate columns
-  # 
-  # ### OUTPUT
-  # write.csv(fticr_data_goethite,FTICR_GOETHITE,na="")
-
-#
-# ---------------------------------------------------------------------------- ---- 
-
 
