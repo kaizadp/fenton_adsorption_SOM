@@ -1,4 +1,4 @@
-source("0-packages.R")
+source("code/0-packages.R")
 
 relabund = read.csv(GOETHITE_RELABUND)
 

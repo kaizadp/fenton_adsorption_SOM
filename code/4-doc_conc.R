@@ -1,6 +1,6 @@
 # 4-doc_concentrations
 
-source("0-packages.R")
+source("code/0-packages.R")
 
 ## step 1. extraction parameters 
 g = 1 #weight of goethite used, units = g
