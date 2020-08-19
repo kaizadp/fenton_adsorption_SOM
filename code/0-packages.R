@@ -4,18 +4,9 @@
 
 ## packages ####
 library(readxl)
-library(ggplot2)       # 2.1.0
 library(dplyr)         # 0.5.0
-library(readr)         # 1.0.0
-library(lubridate)     # 1.6.0
-library(stringr)       # 1.1.0
 library(luzlogr)       # 0.2.0
-library(tidyr)
-library(readr)
-library(tidyverse)
-library(dplyr)
 library(Rmisc)
-library(ggplot2)
 library(data.table)
 library(cowplot)
 library(qwraps2)
@@ -27,9 +18,8 @@ library(stringi)
 library(nlme)
 library(car)
 library(agricolae)
-library(googlesheets)
-library(gsheet)
 library(soilpalettes)
+library(tidyverse)
 
 # DATA_DIR               <- "data/"
 # OUTPUT_DIR		         <- "outputs/"
@@ -58,6 +48,7 @@ theme_kp <- function() {  # this for all the elements common across plots
     )
 }
 # create a custom ggplot function for Van Krevelen plots
+
 gg_vankrev <- function(data,mapping){
   ggplot(data,mapping)+
 # plot points
@@ -71,8 +62,8 @@ gg_vankrev <- function(data,mapping){
 # add boundary lines for Van Krevelen regions
     geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5,color="black",linetype="longdash")+
     #geom_segment(x = 0.0, y = 2, xend = 1.2, yend = 2,color="black",linetype="longdash")+
-    geom_segment(x = 0.0, y = 1, xend = 1.2, yend = 0.75,color="black",linetype="longdash")+
-    geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.5,color="black",linetype="longdash")
+    geom_segment(x = 0.0, y = 1.05, xend = 1.2, yend = 0.55,color="black",linetype="longdash")+
+    geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.4,color="black",linetype="longdash")
 }
 
 ## to make the Van Krevelen plot:
