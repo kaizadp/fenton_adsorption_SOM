@@ -1,12 +1,16 @@
-#   adsorptive fractionation of SOM
+#   Reactive oxygen species alter chemical composition and adsorptive fractionation of soil-derived organic matter
 #   Kaizad Patel
-#---------------------- 
-#----------------------
+
+#   FTICR-RELATIVE ABUNDANCES
+#   use this script to calculate relative abundances and peak counts
+
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 source("code/0-packages.R")
 
-
-# INPUT FILES
+# 0. input files ----------------------------------------------------------
 meta = read.csv(FTICR_META)# <- "fticr/fticr_meta.csv" # all metadata about formula, etc. assignment for each m/z value
 hcoc = read.csv(HCOC)
 class = read.csv(CLASS)
@@ -17,7 +21,6 @@ fenton = read.csv(FTICR_FENTON)# <- "fticr/fticr_fenton.csv" # pre- and post-Fen
 goethite = read.csv(FTICR_GOETHITE)# <- "fticr/fticr_goethite.csv" # pre- and post-Goethite data, intensities only
 
 #
-
 # ---------------------------------------------------------------------------- ----
 
 # 1. create hcoc file for van krevelens ----
