@@ -1,10 +1,8 @@
 ---
 title: "adsorption_markdown"
 author: "Kaizad Patel"
-output: html_document
+output: github_document
 ---
-
-Run: `r Sys.Date()`
 
 
 ```{r knitrsetup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -14,7 +12,7 @@ knitr::opts_chunk$set(echo=FALSE,message=FALSE,warning=FALSE,
                       fig.path = "images/markdown/"
                       )
 
-library(wesanderson)
+# library(wesanderson)
 # devtools::install_github("kaizadp/soilpalettes")
 library(soilpalettes)
 ```
@@ -39,10 +37,31 @@ sorbed_relabund = read.csv(GOETHITE_RELABUND)
 
 ```
 
-# Native SOM and the Fenton reaction
+---
+
+# DOC concentrations
+```{r}
+source("code/4-doc_conc.R")
+
+print("concentrations, mg/L")
+conc_summary %>% 
+  dplyr::mutate(wsoc_mg_L = paste(round(doc_mg_L,0),"\U00B1",round(doc_se,1))) %>% 
+  dplyr::select(Forest, Fenton, wsoc_mg_L) %>% 
+  knitr::kable(align = "r")
+
+print("adsorbed C, mg/g goethite")
+conc_summary %>% 
+  dplyr::mutate(adsorbed = paste(round(adsorbed_mgg,1),"\U00B1",round(adsorbed_se,1))) %>% 
+  dplyr::select(Forest, Fenton, adsorbed) %>% 
+  knitr::kable(align = "r")  
+```
+
+---
+
+# FTICR-MS
+
 ## summary tables
 ```{r summary table}
-
 elements %>% 
   dplyr::mutate(sp = paste(Forest, Treatment),
                 val = paste(avg)) %>% 
@@ -51,7 +70,7 @@ elements %>%
   spread(sp, val) %>% 
   knitr::kable(align = "r")
 
-relabund%>% 
+relabund %>% 
   ungroup %>% 
   dplyr::mutate(sp = paste(Forest, Fenton),
                 val = paste(rel_abund)) %>% 
@@ -72,32 +91,21 @@ master %>%
   group_by(Forest, Treatment) %>% 
   dplyr::summarise(peaks = n()) %>% 
   knitr::kable(align = "r")
-  
-  
-```
-
-## concentrations
-```{r}
-source("code/4-doc_conc.R")
-print("concentrations, mg/L")
-conc_summary %>% 
-  dplyr::mutate(wsoc_mg_L = paste(round(doc_mg_L,0),"\U00B1",round(doc_se,1))) %>% 
-  dplyr::select(Forest, Fenton, wsoc_mg_L) %>% 
-  knitr::kable(align = "r")
-
-print("adsorbed C, mg/g goethite")
-conc_summary %>% 
-  dplyr::mutate(adsorbed = paste(round(adsorbed_mgg,1),"\U00B1",round(adsorbed_se,1))) %>% 
-  dplyr::select(Forest, Fenton, adsorbed) %>% 
-  knitr::kable(align = "r")  
-
-
 ```
 
 
-#### van krevelen: native SOM
+## Van Krevelen domains
 
-```{r native_van_krev, fig.cap="native SOM", fig.width=10, fig.height=5, include=FALSE}
+```{r vk_domains}
+meta %>% 
+  gg_vankrev(aes(x = OC, y = HC, color = Class))+
+  scale_color_manual(values = PNWColors::pnw_palette("Sailboat",6))+
+  theme_kp()+
+  theme(legend.position = "right")+
+  NULL
+```
+
+```{r native_van_krev, fig.cap="native SOM", fig.width=10, fig.height=5, include=FALSE, eval=FALSE}
 master_hcoc %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
   master_hcoc
@@ -110,9 +118,7 @@ gg_vankrev(master_hcoc[master_hcoc$Treatment=="PreFenton",], aes(x=OC,y=HC, colo
   theme(legend.position = "none")
 ```
 
-#### van krevelen: Fenton
-
-```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=10, fig.height=5, include=FALSE}
+```{r fenton_van_krev, fig.cap="fenton SOM", fig.width=10, fig.height=5, include=FALSE, eval=FALSE}
 gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, color = Treatment))+
   facet_wrap(~Forest)+
   scale_color_manual(values = "tomato")+
@@ -121,7 +127,7 @@ gg_vankrev(master_hcoc[master_hcoc$Treatment=="PostFenton",], aes(x=OC,y=HC, col
 ```
 
 
-#### van krevelen: combined 
+## van krevelen: combined 
 ```{r vk_fenton_trt, fig.width=9, fig.height=5}
 master_hcoc %>% 
   mutate(Treatment=factor(Treatment, levels = c("PreFenton","PostFenton")))->
@@ -137,13 +143,14 @@ gg_vankrev(master_hcoc, aes(x=OC,y=HC, color = Forest))+
   
   annotate("text", label = "aliphatic", x = 1.1, y = 2.0)+
   annotate("text", label = "lignin-like", x = 1.1, y = 1.0)+
-  annotate("text", label = "aromatic", x = 1.1, y = 0.7)+
+  annotate("text", label = "aromatic", x = 1.1, y = 0.53)+
   annotate("text", label = "condensed \n aromatic", x = 1.1, y = 0.2)
 
 ```
 
-
 ## fenton 
+
+1. fenton loss-gain
 
 ```{r fenton_loss, fig.width=5, fig.height=5}
 
@@ -207,15 +214,16 @@ gg_loss_o =
 
 ```
 
-
 ```{r fenton_loss_combined, fig.width=9, fig.height=4}
-library(patchwork)
-gg_loss2 + gg_loss_o
+# library(patchwork)
+# gg_loss2 + gg_loss_o
 
 library(cowplot)
 plot_grid(gg_loss2, gg_loss_o, labels = c('A', 'B'), label_size = 12, axis = "bl", align = "hv")
 
 ```
+
+2. fentons-oxygen
 
 ```{r fenton_2, include=FALSE}
 fentonloss2 %>% 
@@ -233,7 +241,6 @@ master %>%
 ggplot(master2, aes(x = O))+
   geom_histogram()+
   facet_grid(Treatment~Class)
-
 
 ```
 
@@ -254,21 +261,21 @@ master2 %>%
   spread(Treatment, medianO)
 ```
 
-4. fenton peaks lost
+4. fenton peaks lost -- combined for HW and SW
 
-```{r}
+```{r fenton_lostpeaks}
 fentonloss %>% 
-  group_by(Mass,loss) %>% 
+  group_by(Forest, Mass,loss) %>% 
   dplyr::summarise(n = n()) %>% 
   na_if(.,"") %>% 
   na.omit() %>% 
+  ungroup() %>% 
   left_join(class, by = "Mass") %>% 
+  distinct(Mass, loss, Class) %>% 
   group_by(loss, Class) %>% 
   dplyr::summarize(count = n()) %>% 
-  ungroup %>% 
-  select(loss, Class, count) %>% 
   spread(loss, count) %>% 
-  knitr::kable(align = "r")  
+  knitr::kable(align = "r")
 
 
 ```
@@ -291,7 +298,7 @@ sorbed2 =
 
 VK - adsorbed and unbound peaks  
 
-```{r sorbed_vk1, fig.width=9, fig.height=5}
+```{r sorbed_vk1, fig.width=9, fig.height=5, include=FALSE}
 gg_vankrev(sorbed2[!sorbed2$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbed))+
  # scale_color_manual(values = c("#F1A340","#998EC3"))+
  scale_color_manual(values = c("grey40","darkblue"))+
@@ -300,6 +307,28 @@ gg_vankrev(sorbed2[!sorbed2$adsorbed=="new",], aes(x = OC, y = HC, color=adsorbe
   theme(legend.position = c(0.7, 0.92),
         legend.direction = "horizontal")+
   guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
+```
+
+### sorbed peaks only
+
+```{r goethite_vk2, fig.width=5, fig.height=5}
+# set order of levels
+gg_sorbed =
+  gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
+ # scale_color_manual(values = c("#F1A340","#998EC3"))+
+ #scale_color_manual(values = c("grey40","darkblue"))+
+  scale_color_manual(values = soil_palette("redox",2),
+                     breaks = c("PreFenton", "PostFenton"))+
+  #facet_wrap(~fenton)+
+  stat_ellipse()+
+  theme_kp()+
+  theme(legend.position = c(0.65, 0.92),
+        legend.direction = "horizontal")+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
+
+ggMarginal(gg_sorbed,groupColour = TRUE,groupFill = TRUE, size = 10)
 
 ```
 
@@ -335,33 +364,7 @@ ggplot(sorbed_relabund2[!sorbed_relabund2$adsorbed=="new",], aes(x=Class, y=rela
   theme_bw()+
   theme_kp()+
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))
-
 ```
-
-
-### sorbed peaks only
-
-
-```{r goethite_vk2, fig.width=5, fig.height=5}
-# set order of levels
-gg_sorbed =
-  gg_vankrev(sorbed[sorbed$adsorbed=="sorbed",], aes(x = OC, y = HC, color=fenton))+
- # scale_color_manual(values = c("#F1A340","#998EC3"))+
- #scale_color_manual(values = c("grey40","darkblue"))+
-  scale_color_manual(values = soil_palette("redox",2),
-                     breaks = c("PreFenton", "PostFenton"))+
-  #facet_wrap(~fenton)+
-  stat_ellipse()+
-  theme_kp()+
-  theme(legend.position = c(0.65, 0.92),
-        legend.direction = "horizontal")+
-  guides(colour = guide_legend(override.aes = list(alpha = 1)))
-
-
-ggMarginal(gg_sorbed,groupColour = TRUE,groupFill = TRUE, size = 10)
-
-```
-
 
 ```{r goethite_groups2, fig.width=5, fig.height=6}
 ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=relabund, fill=fenton))+
@@ -381,9 +384,16 @@ ggplot(sorbed_relabund2[sorbed_relabund2$adsorbed=="sorbed",], aes(x=Class, y=re
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="plain", size = 12))+
   theme(legend.position = c(0.8, 0.8))+
   guides(colour = guide_legend(override.aes = list(alpha = 1)))
-
 ```
 
 
+<details>
+  <summary>Session Info</summary>
 
+Run: `r Sys.Date()`
 
+```{r}
+sessionInfo()
+```
+
+</details>
