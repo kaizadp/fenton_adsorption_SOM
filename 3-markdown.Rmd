@@ -20,7 +20,7 @@ library(soilpalettes)
 ```
 
 ```{r input}
-source("0-packages.R")
+source("code/0-packages.R")
 library(soilpalettes)
 # INPUT
 meta_elements = read.csv(ELEMENTS)
@@ -78,7 +78,7 @@ master %>%
 
 ## concentrations
 ```{r}
-source("4-doc_conc.R")
+source("code/4-doc_conc.R")
 print("concentrations, mg/L")
 conc_summary %>% 
   dplyr::mutate(wsoc_mg_L = paste(round(doc_mg_L,0),"\U00B1",round(doc_se,1))) %>% 

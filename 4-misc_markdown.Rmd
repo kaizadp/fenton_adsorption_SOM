@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo=FALSE,message=FALSE,warning=FALSE,
                       comment = "#>",
                       fig.path = "images/"
                       )
-source("0-packages.R")
+source("code/0-packages.R")
 ```
 
 calculating NOSC of Fenton-lost and gained molecules
@@ -56,7 +56,7 @@ ggplot(loss[loss$Class=="Lignin-like",], aes(x = NOSC, color = loss, fill = loss
   geom_histogram(alpha = 0.5, position = "identity")+
   geom_boxplot(aes(x = NOSC, y=80, color = loss), fill = "white",  width = 10)
 
-  facet_grid(~Forest)
+  #facet_grid(~Forest)
 
 ```
 
@@ -99,7 +99,7 @@ adsorbed_subset =
   adsorbed_nosc %>% 
   filter(Class %in% c("Carbohydrate-like","Lignin-like"),
          adsorbed %in% c("sorbed"))
-  dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton", "PostFenton")))
+  #dplyr::mutate(fenton = factor(fenton, levels = c("PreFenton", "PostFenton")))
   
 
 ggplot(adsorbed_nosc[adsorbed_nosc$adsorbed=="sorbed",], aes(x = NOSC, color = fenton, fill = fenton))+
@@ -150,12 +150,40 @@ gg_vankrev(meta, aes(x = OC, y = HC, color = Class))+
   theme_kp()
 
 gg_vankrev(meta, aes(x = OC, y = HC, color = as.factor(DBE)))
-  theme_kp()
+  #theme_kp()
 
 gg_vankrev(meta, aes(x = OC, y = HC, color = NOSC))
-  theme_kp()
+  #theme_kp()
 
 ```
+
+
+
+## combining fenton and goethite
+```{r}
+# set order of levels
+adsorbed %>% 
+  group_by(Mass,fenton,adsorbed, HC, OC, Class) %>% 
+  dplyr::summarise(n = n()) %>% 
+  ungroup %>% 
+  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
+
+# sorbed2 = 
+#   sorbed %>% 
+#   left_join(dplyr::select(fenton_loss, Mass, Forest, loss), by = c("Mass", "Forest"))
+
+
+
+
+
+# gg_vankrev(sorbed2[sorbed2$adsorbed=="sorbed",], aes(x = OC, y = HC, color=loss))+
+#  # scale_color_manual(values = c("#F1A340","#998EC3"))+
+#  #scale_color_manual(values = c("grey40","darkblue"))+
+#   facet_grid(loss~fenton)+
+#   theme_kp()
+#   theme(legend.position = "none")
+```
+
 
 adsorbed peaks common to pre and post-Fenton
 ```{r}
@@ -171,11 +199,11 @@ sorbed3 =
                 unique2 = case_when(unique==1 ~ fenton,
                                     unique==2 ~ as.factor(common)))
  
-  spread(fenton, adsorbed)
-  filter(PreFenton=="sorbed") %>% 
-
-  group_by(PostFenton) %>% 
-  dplyr::summarise(n = n())
+#  spread(fenton, adsorbed)
+#  filter(PreFenton=="sorbed") %>% 
+#
+#  group_by(PostFenton) %>% 
+#  dplyr::summarise(n = n())
 
 
 
@@ -188,30 +216,4 @@ gg_vankrev(sorbed3, aes(x = OC, y = HC, color=unique2))+
   
 
 
-```
-
-
-## combining fenton and goethite
-```{r}
-# set order of levels
-sorbed %>% 
-  group_by(Mass,fenton,adsorbed, HC, OC, Class) %>% 
-  dplyr::summarise(n = n()) %>% 
-  ungroup %>% 
-  dplyr::mutate(fenton=factor(fenton, levels = c("PreFenton","PostFenton")))->sorbed
-
-sorbed2 = 
-  sorbed %>% 
-  left_join(dplyr::select(fentonloss, Mass, Forest, loss), by = c("Mass", "Forest"))
-
-
-
-
-
-gg_vankrev(sorbed2[sorbed2$adsorbed=="sorbed",], aes(x = OC, y = HC, color=loss))+
- # scale_color_manual(values = c("#F1A340","#998EC3"))+
- #scale_color_manual(values = c("grey40","darkblue"))+
-  facet_grid(loss~fenton)+
-  theme_kp()
-  theme(legend.position = "none")
 ```
