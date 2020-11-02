@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/207837558.svg)](https://zenodo.org/badge/latestdoi/207837558)
+
 ## Reactive oxygen species alter chemical composition and adsorptive fractionation of soil-derived organic matter
 
 Kaizad F. Patel, Václav Tejnecký, Tsutomu Ohno, Vanessa L. Bailey, Rachel L. Sleighter, and Patrick G. Hatcher
