@@ -7,8 +7,8 @@ source("code/0-packages.R")
 
 
 ## INPUT FILES ----
-HW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonHWAdsorp-Master.csv") 
-HW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFenHWAdsorp-Master.csv") 
+HW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonHWAdsorp.csv") 
+HW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFenHWAdsorp.csv") 
 SW_PREFENTONGOETHITE = read.csv("data/fticr/PreFentonSWAdsorp.csv")
 SW_POSTFENTONGOETHITE = read.csv("data/fticr/PostFentonSWAdsorp.csv")
 
