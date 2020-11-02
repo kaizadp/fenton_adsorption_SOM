@@ -1,0 +1,26 @@
+﻿Sample,Sample_no,Forest,Fenton,Goethite,DOC_uncorrected_mg_L,Dilution,Extract_conc_mg_L,DOC_blank_corrected_mg_L
+PreFenton HW1,1,HW,PreFenton,PreGoethite,108.1,4,432.4,431.68
+PreFenton HW2,2,HW,PreFenton,PreGoethite,122.5,4,490,489.28
+PreFenton HW3,3,HW,PreFenton,PreGoethite,142.9,4,571.6,570.88
+PreFenton SW1,1,SW,PreFenton,PreGoethite,127.8,4,511.2,510.48
+PreFenton SW2,2,SW,PreFenton,PreGoethite,127.1,4,508.4,507.68
+PreFenton SW3,3,SW,PreFenton,PreGoethite,132.1,4,528.4,527.68
+PostFenton HW1,1,HW,PostFenton,PreGoethite,102,4,408,407.28
+PostFenton HW2,2,HW,PostFenton,PreGoethite,110.9,4,443.6,442.88
+PostFenton HW3,3,HW,PostFenton,PreGoethite,130.8,4,523.2,522.48
+PostFenton SW1,1,SW,PostFenton,PreGoethite,110.8,4,443.2,442.48
+PostFenton SW2,2,SW,PostFenton,PreGoethite,113.9,4,455.6,454.88
+PostFenton SW3,3,SW,PostFenton,PreGoethite,116.9,4,467.6,466.88
+PreFenton Goethite HW1,1,HW,PreFenton,PostGoethite,31.6,4,126.4,125.68
+PreFenton Goethite HW2,2,HW,PreFenton,PostGoethite,36.3,4,145.1,144.4
+PreFenton Goethite HW3,3,HW,PreFenton,PostGoethite,42.5,4,170,169.28
+PreFenton Goethite SW1,1,SW,PreFenton,PostGoethite,36.6,4,146.5,145.76
+PreFenton Goethite SW2,2,SW,PreFenton,PostGoethite,36.4,4,145.7,145
+PreFenton Goethite SW3,3,SW,PreFenton,PostGoethite,37.8,4,151.2,150.52
+PostFenton Goethite HW1,1,HW,PostFenton,PostGoethite,23.9,4,95.8,95.04
+PostFenton Goethite HW2,2,HW,PostFenton,PostGoethite,25.2,4,100.7,99.96
+PostFenton Goethite HW3,3,HW,PostFenton,PostGoethite,30.5,4,122,121.24
+PostFenton Goethite SW1,1,SW,PostFenton,PostGoethite,26.8,4,107,106.28
+PostFenton Goethite SW2,2,SW,PostFenton,PostGoethite,32.2,4,128.8,128.08
+PostFenton Goethite SW3,3,SW,PostFenton,PostGoethite,30,4,120,119.32
+Blank,,,,,0.724,,,
